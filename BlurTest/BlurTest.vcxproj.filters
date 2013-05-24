@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{235b16f1-34e6-4026-bb36-97ffa9b3ce9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DirectX11">
+      <UniqueIdentifier>{79ab2cfd-979d-40d4-8ade-a673a35adb43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{dd6e86a8-f720-43f3-aa3c-2ca3dce5e6dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{00d91aff-f9d0-49c4-9912-9a50743aadbd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\winmain.cpp" />
+    <ClCompile Include="Source\Application\App.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\BlurTestStd.cpp" />
+    <ClCompile Include="Source\Scene\Box.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene\Mesh.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\BlurApp.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Application\App.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BlurTestStd.h" />
+    <ClInclude Include="Source\Scene\Box.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Mesh.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\BlurApp.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Blur.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Lightning.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\MaskGeneration.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\FinalPass.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

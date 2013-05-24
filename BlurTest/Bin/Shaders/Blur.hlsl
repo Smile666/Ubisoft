@@ -18,7 +18,7 @@ groupshared float4 hor_pixels[3+group_size_x+3][3];
 [numthreads(group_size_x, 1, 1)]
 void CS_Horizontal( uint3 DispatchThreadId : SV_DispatchThreadID , uint3 GroupThreadId : SV_GroupThreadID, uint GI : SV_GroupIndex )
 {
-	//read the data from the texture so, that we don't load any data from texture aymore
+	//read the data from the texture so, that we don'tload any data from texture aymore
 	float4 texel = InputTex.Load(DispatchThreadId);
 	hor_pixels[GroupThreadId.x+3][0] = texel * kernel[0];
 	hor_pixels[GroupThreadId.x+3][1] = texel * kernel[1];

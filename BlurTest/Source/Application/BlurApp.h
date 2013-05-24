@@ -44,6 +44,14 @@ protected:
 	ID3D11ShaderResourceView*	m_pBlurredSRV;
 	ID3D11UnorderedAccessView*	m_pBlurredUAV;
 
+	///////////////////////////////////////
+	//Depth Buffer
+	///////////////////////////////////////
+	ID3D11Texture2D*			m_pDepthStencilTexture;
+	ID3D11DepthStencilState*	m_pDepthStencilTest;
+	ID3D11DepthStencilView*		m_pDepthStencilView;
+	ID3D11ShaderResourceView*	m_pDepthStencilSRV;
+
 
 	//////////////////////////////////////
 	//Texture rendering resources
@@ -69,6 +77,7 @@ protected:
 	ID3D11Buffer*	m_pRectVertexBuffer;
 
 	void InitializeTextures();
+	void InitializeDepthBuffer();
 
 	D3D11_VIEWPORT m_viewport;
 

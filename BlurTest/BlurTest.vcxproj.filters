@@ -29,6 +29,9 @@
     <ClCompile Include="Source\Application\BlurApp.cpp">
       <Filter>Application</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Scene\Plane.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\App.h">
@@ -44,15 +47,15 @@
     <ClInclude Include="Source\Application\BlurApp.h">
       <Filter>Application</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Scene\Plane.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Blur.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Lightning.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\MaskGeneration.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\FinalPass.hlsl">

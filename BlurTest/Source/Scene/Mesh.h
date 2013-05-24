@@ -2,6 +2,9 @@
 
 #include "../Application/App.h"
 
+void CreateNormalTangentBinormal(XMFLOAT3 * positions, XMFLOAT2 * texCoords,
+		XMFLOAT3 & normal, XMFLOAT3 & tangent, XMFLOAT3 & binormal);
+
 class Mesh
 {
 public:
@@ -9,7 +12,7 @@ public:
 	~Mesh();
 
 	virtual bool VInitialize(ID3D11Device* pd3d11Device);
-	virtual void VUpdate(const real elapsedTime, const real totalTime) {}
+	virtual void VUpdate(App* pApp, const real elapsedTime, const real totalTime);
 	
 	virtual void VPreRender(App* pApp, const real elapsedTime, const real totalTime);
 	virtual void VRender(ID3D11DeviceContext* pd3d11DevCon, const real elapsedTime, const real totalTime);
@@ -26,9 +29,6 @@ protected:
 	//[2] - normal data buffer
 	//
 	////////////////////////////////////////////////////
-	ID3D11Buffer* m_pPositionBuffer;
-	ID3D11Buffer* m_pTexCoordBuffer;
-	ID3D11Buffer* m_pNormalBuffer;
 	ID3D11Buffer** m_ppBuffers;
 
 	UINT* m_pStride;
@@ -81,6 +81,14 @@ protected:
 		XMFLOAT3 m_tangent;
 		XMFLOAT3 m_binormal;
 	};
+
+	// ============================================
+	//				Geometry data
+	// ============================================
+	XMVECTOR	m_vPos;
+	float		m_fPitch;
+	float		m_fYaw;
+	float		m_fRoll;
 
 public:
 

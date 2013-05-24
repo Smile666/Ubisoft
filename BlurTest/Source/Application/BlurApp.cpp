@@ -156,12 +156,63 @@ void BlurApp::InitializeTextures()
 	}
 }
 
+void BlurApp::InitializeDepthBuffer()
+{
+	// ******************************************
+	//	Initialize depth buffer texture and views
+	// ******************************************
+	D3D11_TEXTURE2D_DESC	depthDesc;
+	ZeroMemory(&depthDesc, sizeof(D3D11_TEXTURE2D_DESC));
+	depthDesc.Width = SCREEN_WIDTH;
+	depthDesc.Height = SCREEN_HEIGHT;
+	depthDesc.MipLevels = 1;
+	depthDesc.ArraySize = 1;
+	depthDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	depthDesc.SampleDesc.Count = 1;
+	depthDesc.SampleDesc.Quality = 0;
+	depthDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	depthDesc.CPUAccessFlags = 0;
+	depthDesc.MiscFlags = 0;
+
+	HRESULT hr = m_d3d11Device->CreateTexture2D(&depthDesc, nullptr, &m_pDepthStencilTexture);
+
+	//Initialize depth stencil view
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	ZeroMemory(&dsvDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+
+	hr = m_d3d11Device->CreateDepthStencilView(m_pDepthStencilTexture, &dsvDesc, &m_pDepthStencilView);
+	if (hr != S_OK)
+	{
+		assert(0 && "Error creating depth stencil view!!!");
+	}
+
+	//Initialize shader resource view for depth texture
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	hr = m_d3d11Device->CreateShaderResourceView(m_pDepthStencilTexture, &srvDesc, &m_pDepthStencilSRV);
+	if (hr != S_OK)
+	{
+		assert(0 && "Error creating shader resource view for depth texture!");
+	}
+}
+
 bool BlurApp::VInitSimulation()
 {
 	App::VInitSimulation();
 
 	//Initialize textures and their views for rendering
 	InitializeTextures();
+
+	//Initialize depth stencil buffer
+	InitializeDepthBuffer();
 
 	HRESULT hr;
 
@@ -343,7 +394,7 @@ void BlurApp::VUpdate(real elapsedTime, real totalTime)
 {
 	for (Meshes::iterator it = m_meshes.begin(); it != m_meshes.end(); it++)
 	{
-		(*it)->VUpdate(elapsedTime, totalTime);
+		(*it)->VUpdate(this, elapsedTime, totalTime);
 	}
 }
 
@@ -367,29 +418,48 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 		(*it)->VPostRender(this, elapsedTime, totalTime);
 	}
 
-	//float color[4] = { 0, 0, 0, 1 };
-	//m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, color);
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, NULL);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, m_pDepthStencilView);
+
+	//*******************************************************************//
+
+	////////////////////////////////////////////
+	//Generate mask (for blurring)
+	//m_d3d11DeviceContext->IASetVertexBuffers(
+	m_d3d11DeviceContext->VSSetShader(m_pFinalPassVertexShader, 0, 0);
+	m_d3d11DeviceContext->PSSetShader(m_pMaskPixelShader, 0, 0);
+	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pDepthStencilSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pMaskRTV, nullptr);
+	
+	//??????
+
+	m_d3d11DeviceContext->PSGetShaderResources(0, 1, &pNullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, nullptr);
+	//*******************************************************************//
 
 	////////////////////////////////////////////
 	//Apply blur
 	m_d3d11DeviceContext->CSSetShader(m_pGaussHorizontalComputeShader, 0, 0);
 	m_d3d11DeviceContext->CSSetShaderResources(0, 1, &m_pSceneSRV);
+	m_d3d11DeviceContext->CSSetShaderResources(2, 1, &m_pMaskSRV);
 	m_d3d11DeviceContext->CSSetUnorderedAccessViews(0, 1, &m_pBlurredUAV, nullptr);
 	m_d3d11DeviceContext->Dispatch(1, SCREEN_HEIGHT, 1);
 	m_d3d11DeviceContext->CSSetShaderResources(0, 1, &pNullSRV);
+	m_d3d11DeviceContext->CSSetShaderResources(2, 1, &pNullSRV);
 	m_d3d11DeviceContext->CSSetUnorderedAccessViews(0, 1, &pNullUAV, nullptr);
 
 	m_d3d11DeviceContext->CSSetShader(m_pGaussVerticalComputeShader, 0, 0);
 	m_d3d11DeviceContext->CSSetShaderResources(1, 1, &m_pBlurredSRV);
+	m_d3d11DeviceContext->CSSetShaderResources(3, 1, &m_pMaskSRV);
 	m_d3d11DeviceContext->CSSetUnorderedAccessViews(1, 1, &m_pSceneUAV, nullptr);
 	m_d3d11DeviceContext->Dispatch(SCREEN_WIDTH, 1, 1);
 	m_d3d11DeviceContext->CSSetShaderResources(1, 1, &pNullSRV);
-	m_d3d11DeviceContext->CSSetUnorderedAccessViews(1, 1, &pNullUAV, nullptr);
+	m_d3d11DeviceContext->CSSetShaderResources(3, 1, &pNullSRV);
+	m_d3d11DeviceContext->CSSetUnorderedAccessViews(1, 1, &pNullUAV, nullptr); 
+
+	//*******************************************************************//
 
 	/////////////////////////////////////////////
 	//Render texture to the screen
-
 	UINT stride = sizeof(RectVertex);
 	UINT offset = 0;
 	m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_pRectVertexBuffer, &stride, &offset);
@@ -410,10 +480,14 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	//flip back buffer
 	m_SwapChain->Present(0, 0);
 
+	//*******************************************************************//
+
 	////////////////////////////////////////////////
 	//Clear all render targets
 	float color[4] = { 0, 0, 0, 1 };
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, color);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pMaskRTV, color);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pSceneRTV, color);
+
+	//*******************************************************************//
 }

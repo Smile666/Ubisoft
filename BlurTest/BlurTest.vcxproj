@@ -102,6 +102,7 @@
     </ClCompile>
     <ClCompile Include="Source\Scene\Box.cpp" />
     <ClCompile Include="Source\Scene\Mesh.cpp" />
+    <ClCompile Include="Source\Scene\Plane.cpp" />
     <ClCompile Include="Source\winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +111,7 @@
     <ClInclude Include="Source\BlurTestStd.h" />
     <ClInclude Include="Source\Scene\Box.h" />
     <ClInclude Include="Source\Scene\Mesh.h" />
+    <ClInclude Include="Source\Scene\Plane.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Blur.hlsl">
@@ -123,10 +125,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\Lightning.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Shaders\MaskGeneration.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>

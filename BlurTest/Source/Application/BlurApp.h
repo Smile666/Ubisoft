@@ -38,11 +38,11 @@ protected:
 	ID3D11Texture2D*	m_pSceneTexture;
 	ID3D11RenderTargetView*	m_pSceneRTV;
 	ID3D11ShaderResourceView*	m_pSceneSRV;
-	//ID3D11UnorderedAccessView*	m_pSceneUAV;
+	ID3D11UnorderedAccessView*	m_pSceneUAV;
 
-	ID3D11Texture2D*	m_pFinalSceneTexture;
-	ID3D11UnorderedAccessView*	m_pFinalSceneUAV;
-	ID3D11RenderTargetView*		m_pFinalTextureRTV;
+	ID3D11Texture2D*	m_pBlurredTexture;
+	ID3D11ShaderResourceView*	m_pBlurredSRV;
+	ID3D11UnorderedAccessView*	m_pBlurredUAV;
 
 
 	//////////////////////////////////////

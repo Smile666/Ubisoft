@@ -5,6 +5,7 @@
 
 ID3D11RenderTargetView* pNullRTV;
 ID3D11ShaderResourceView* pNullSRV;
+ID3D11UnorderedAccessView*	pNullUAV;
 
 BlurApp::BlurApp()
 {
@@ -58,7 +59,15 @@ void BlurApp::InitializeTextures()
 		assert(0 && "error");
 	}
 
+	tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS;
 	hr = m_d3d11Device->CreateTexture2D(&tDesc, NULL, &m_pSceneTexture);
+	if (hr != S_OK)
+	{
+		assert(0 && "error");
+	}
+
+	tDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	hr = m_d3d11Device->CreateTexture2D(&tDesc, NULL, &m_pBlurredTexture);
 	if (hr != S_OK)
 	{
 		assert(0 && "error");
@@ -90,6 +99,11 @@ void BlurApp::InitializeTextures()
 	{
 		assert(0 && "error");
 	}
+	hr = m_d3d11Device->CreateShaderResourceView(m_pBlurredTexture, &srvDesc, &m_pBlurredSRV);
+	if (hr != S_OK)
+	{
+		assert(0 && "error");
+	}
 
 	// ******************************************
 	//
@@ -112,6 +126,30 @@ void BlurApp::InitializeTextures()
 		assert(0 && "error");
 	}
 	hr = m_d3d11Device->CreateRenderTargetView(m_pSceneTexture, &rtvDesc, &m_pSceneRTV);
+	if (hr != S_OK)
+	{
+		assert(0 && "error");
+	}
+
+	// ******************************************
+	//
+	//		Create Unordered Access Views
+	//
+	// ******************************************
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	ZeroMemory(&uavDesc, sizeof(D3D11_UNORDERED_ACCESS_VIEW_DESC));
+	uavDesc.Format = tDesc.Format;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+
+	//////////////////////////////////////////////
+	//Initialize unordered access views
+	hr = m_d3d11Device->CreateUnorderedAccessView(m_pSceneTexture, &uavDesc, &m_pSceneUAV);
+	if (hr != S_OK)
+	{
+		assert(0 && "error");
+	}
+	hr = m_d3d11Device->CreateUnorderedAccessView(m_pBlurredTexture, &uavDesc, &m_pBlurredUAV);
 	if (hr != S_OK)
 	{
 		assert(0 && "error");
@@ -331,8 +369,26 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	//float color[4] = { 0, 0, 0, 1 };
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, color);
-
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, NULL);
+
+	////////////////////////////////////////////
+	//Apply blur
+	m_d3d11DeviceContext->CSSetShader(m_pGaussHorizontalComputeShader, 0, 0);
+	m_d3d11DeviceContext->CSSetShaderResources(0, 1, &m_pSceneSRV);
+	m_d3d11DeviceContext->CSSetUnorderedAccessViews(0, 1, &m_pBlurredUAV, nullptr);
+	m_d3d11DeviceContext->Dispatch(1, SCREEN_HEIGHT, 1);
+	m_d3d11DeviceContext->CSSetShaderResources(0, 1, &pNullSRV);
+	m_d3d11DeviceContext->CSSetUnorderedAccessViews(0, 1, &pNullUAV, nullptr);
+
+	m_d3d11DeviceContext->CSSetShader(m_pGaussVerticalComputeShader, 0, 0);
+	m_d3d11DeviceContext->CSSetShaderResources(1, 1, &m_pBlurredSRV);
+	m_d3d11DeviceContext->CSSetUnorderedAccessViews(1, 1, &m_pSceneUAV, nullptr);
+	m_d3d11DeviceContext->Dispatch(SCREEN_WIDTH, 1, 1);
+	m_d3d11DeviceContext->CSSetShaderResources(1, 1, &pNullSRV);
+	m_d3d11DeviceContext->CSSetUnorderedAccessViews(1, 1, &pNullUAV, nullptr);
+
+	/////////////////////////////////////////////
+	//Render texture to the screen
 
 	UINT stride = sizeof(RectVertex);
 	UINT offset = 0;
@@ -353,4 +409,11 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	//flip back buffer
 	m_SwapChain->Present(0, 0);
+
+	////////////////////////////////////////////////
+	//Clear all render targets
+	float color[4] = { 0, 0, 0, 1 };
+	m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, color);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_pMaskRTV, color);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_pSceneRTV, color);
 }

@@ -1,8 +1,8 @@
 //////////////////////////////////////
 //Shader resources and sampler states
 //////////////////////////////////////
-//Texture2D		diffuseMap		:	register( t0 );
-//SamplerState	samplerState	:	register( s0 );
+Texture2D		depthMap		:	register( t0 );
+SamplerState	samplerState	:	register( s0 );
 
 //////////////////////////////////////
 //Constant buffers
@@ -19,7 +19,7 @@ cbuffer ScreenBuffer : register( c0 )
 struct ps_input
 {
 	float4	pos	:	SV_POSITION;
-	//float2	texCoord	:	TEXCOORDS;
+	float2	texCoord	:	TEXCOORDS;
 };
 
 float4 MaskSimplePS( ps_input input ) : SV_TARGET

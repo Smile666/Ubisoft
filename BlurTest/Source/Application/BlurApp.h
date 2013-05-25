@@ -18,12 +18,14 @@ protected:
 	/////////////////////////////////////
 	//Shaders
 	/////////////////////////////////////
-	ID3D11ComputeShader*	m_pMaskGenerationComputeShader;
+	//ID3D11ComputeShader*	m_pMaskGenerationComputeShader;
+	ID3D11PixelShader*	m_pMaskPixelShader;
 	ID3D11VertexShader*	m_pLightningVertexShader;
 	ID3D11PixelShader*	m_pLightningPixelShader;
 	ID3D11ComputeShader*	m_pBlurComputeShader;
 	ID3D11VertexShader*	m_pFinalPassVertexShader;
 	ID3D11PixelShader*	m_pFinalPassPixelShader;
+	ID3D11PixelShader*	m_pBackgroundPixelShader;
 
 	ID3D11ComputeShader*	m_pGaussHorizontalComputeShader;
 	ID3D11ComputeShader*	m_pGaussVerticalComputeShader;
@@ -44,6 +46,12 @@ protected:
 	ID3D11ShaderResourceView*	m_pBlurredSRV;
 	ID3D11UnorderedAccessView*	m_pBlurredUAV;
 
+	///////////////////////////////////////////
+	//Sampler States
+	///////////////////////////////////////////
+	ID3D11SamplerState*	m_pAnisotropicSampler;
+	ID3D11SamplerState*	m_pTiledSampler;
+
 	///////////////////////////////////////
 	//Depth Buffer
 	///////////////////////////////////////
@@ -52,6 +60,18 @@ protected:
 	ID3D11DepthStencilView*		m_pDepthStencilView;
 	ID3D11ShaderResourceView*	m_pDepthStencilSRV;
 
+	/////////////////////////////////////
+	//constant buffer
+	/////////////////////////////////////
+	ID3D11Buffer*	m_pcbScreen;
+	struct ScreenData
+	{
+		float		screen_width;
+		float		screen_height;
+		XMFLOAT2	pad;
+	};
+
+	ID3D11ShaderResourceView*	m_pBackgroundSRV;
 
 	//////////////////////////////////////
 	//Texture rendering resources
@@ -75,9 +95,11 @@ protected:
 		};
 	};
 	ID3D11Buffer*	m_pRectVertexBuffer;
+	ID3D11Buffer*	m_pScreenRectVertexBuffer;
 
 	void InitializeTextures();
 	void InitializeDepthBuffer();
+	void InitializeSamplerStates();
 
 	D3D11_VIEWPORT m_viewport;
 

@@ -94,16 +94,21 @@ void BlurApp::InitializeTextures()
 	{
 		assert(0 && "error");
 	}
+
 	hr = m_d3d11Device->CreateShaderResourceView(m_pSceneTexture, &srvDesc, &m_pSceneSRV);
 	if (hr != S_OK)
 	{
 		assert(0 && "error");
 	}
+
 	hr = m_d3d11Device->CreateShaderResourceView(m_pBlurredTexture, &srvDesc, &m_pBlurredSRV);
 	if (hr != S_OK)
 	{
 		assert(0 && "error");
 	}
+
+	hr = D3DX11CreateShaderResourceViewFromFile(m_d3d11Device, L"Resources\\bg.jpg", NULL, NULL, &m_pBackgroundSRV, NULL);
+
 
 	// ******************************************
 	//
@@ -204,6 +209,37 @@ void BlurApp::InitializeDepthBuffer()
 	}
 }
 
+void BlurApp::InitializeSamplerStates()
+{
+	D3D11_SAMPLER_DESC sDesc;
+	ZeroMemory(&sDesc, sizeof(D3D11_SAMPLER_DESC));
+	sDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sDesc.MinLOD = 0;
+	sDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	sDesc.MaxAnisotropy = 16;
+
+	HRESULT hr = m_d3d11Device->CreateSamplerState(&sDesc, &m_pAnisotropicSampler);
+	if (hr != S_OK)
+	{
+		assert(0 && "Error");
+	}
+
+	sDesc.Filter = D3D11_FILTER_ANISOTROPIC;;
+	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+
+	hr = m_d3d11Device->CreateSamplerState(&sDesc, &m_pTiledSampler);
+	if (hr != S_OK)
+	{
+		assert(0 && "Error");
+	}
+}
+
 bool BlurApp::VInitSimulation()
 {
 	App::VInitSimulation();
@@ -213,6 +249,9 @@ bool BlurApp::VInitSimulation()
 
 	//Initialize depth stencil buffer
 	InitializeDepthBuffer();
+
+	//Initialize sampler states
+	InitializeSamplerStates();
 
 	HRESULT hr;
 
@@ -278,6 +317,7 @@ bool BlurApp::VInitSimulation()
 	//Create texture rendering  shaders
 	ID3D10Blob* pCompiledTextureVertexShader;
 	ID3D10Blob*	pCompiledTexturePixelShader;
+	ID3D10Blob*	pCompiledBackgroundPixelShader;
 
 	hr = D3DX11CompileFromFile(L"Shaders\\FinalPass.hlsl", 0, 0, "VS", "vs_5_0", 0, 0, 0, &pCompiledTextureVertexShader, &pErrors, 0);
 	if (hr != S_OK)
@@ -293,8 +333,16 @@ bool BlurApp::VInitSimulation()
 			OutputDebugStringA((char*)pErrors->GetBufferPointer());
 	}
 
+	hr = D3DX11CompileFromFile(L"Shaders\\FinalPass.hlsl", 0, 0, "PSBackground", "ps_5_0", 0, 0, 0, &pCompiledBackgroundPixelShader, &pErrors, 0);
+	if (hr != S_OK)
+	{
+		if (pErrors != 0)
+			OutputDebugStringA((char*)pErrors->GetBufferPointer());
+	}
+
 	hr = m_d3d11Device->CreateVertexShader(pCompiledTextureVertexShader->GetBufferPointer(), pCompiledTextureVertexShader->GetBufferSize(), nullptr, &m_pFinalPassVertexShader);
 	hr = m_d3d11Device->CreatePixelShader(pCompiledTexturePixelShader->GetBufferPointer(), pCompiledTexturePixelShader->GetBufferSize(), nullptr, &m_pFinalPassPixelShader);
+	hr = m_d3d11Device->CreatePixelShader(pCompiledBackgroundPixelShader->GetBufferPointer(), pCompiledBackgroundPixelShader->GetBufferSize(), nullptr, &m_pBackgroundPixelShader);
 
 	D3D11_INPUT_ELEMENT_DESC texlayout[] =
 	{
@@ -304,7 +352,24 @@ bool BlurApp::VInitSimulation()
 
 	hr = m_d3d11Device->CreateInputLayout(texlayout, 2, pCompiledTextureVertexShader->GetBufferPointer(), pCompiledTextureVertexShader->GetBufferSize(), &m_pTextureLayout);
 
+	/////////////////////////////////////
+	//Create mask shader
+	ID3D10Blob*	pCompiledMaskPixelShader;
+
+	hr = D3DX11CompileFromFile(L"Shaders\\MaskGeneration.hlsl", 0, 0, "MaskSimplePS", "ps_5_0", 0, 0, 0, &pCompiledMaskPixelShader, &pErrors, 0);
+	if (hr != S_OK)
+	{
+		if (pErrors != 0)
+			OutputDebugStringA((char*)pErrors->GetBufferPointer());
+	}
+
+	hr = m_d3d11Device->CreatePixelShader(pCompiledMaskPixelShader->GetBufferPointer(), pCompiledMaskPixelShader->GetBufferSize(), nullptr, &m_pMaskPixelShader); 
+
 	//release blobs
+	pCompiledBackgroundPixelShader->Release();
+	pCompiledMaskPixelShader->Release();
+	pCompiledHorizontalGaussComputeShader->Release();
+	pCompiledVerticalGaussComputeShader->Release();
 	pCompiledLightningVertexShader->Release();
 	pCompiledLightningPixelShader->Release();
 	pCompiledTextureVertexShader->Release();
@@ -328,7 +393,7 @@ bool BlurApp::VInitSimulation()
 
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(MatrixTexBuffer)*3;
+	bufferDesc.ByteWidth = sizeof(MatrixTexBuffer)*3; //???!!!
 
 	m_d3d11Device->CreateBuffer(&bufferDesc, 0, &m_pcbMatrixTex);
 
@@ -337,6 +402,14 @@ bool BlurApp::VInitSimulation()
 	buffer.WorldViewProjection = XMMatrixTranspose(XMMatrixIdentity() * m_matrixView * XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, m_fNearZ, m_fFarZ));
 	m_d3d11DeviceContext->UpdateSubresource(m_pcbMatrixTex, 0, nullptr, &buffer, 0, 0);
 
+	//screen data constant buffer
+	bufferDesc.ByteWidth = sizeof(ScreenData);
+	m_d3d11Device->CreateBuffer(&bufferDesc, 0, &m_pcbScreen);
+
+	ScreenData screenBuffer;
+	screenBuffer.screen_width = SCREEN_WIDTH;
+	screenBuffer.screen_height = SCREEN_HEIGHT;
+	m_d3d11DeviceContext->UpdateSubresource(m_pcbScreen, 0, nullptr, &screenBuffer, 0, 0);
 
 	/////////////////////////////////////////////
 	//Vertex Buffer Description 
@@ -374,6 +447,19 @@ bool BlurApp::VInitSimulation()
 	bufferData.pSysMem = verts;
 	hr = m_d3d11Device->CreateBuffer(&vbDesc, &bufferData, &m_pRectVertexBuffer);
 
+	RectVertex sverts [] = 
+	{
+		RectVertex(left,	top,	0.0f,	0.0f,			0.0f ), //left top
+		RectVertex(right,	top,	0.0f,	SCREEN_WIDTH / 80.0f,	0.0f ), //right top
+		RectVertex(left,	bottom, 0.0f,	0.0f,			SCREEN_HEIGHT / 80.0f ), //left bottom
+		RectVertex(left,	bottom, 0.0f,	0.0f,			SCREEN_HEIGHT / 80.0f ), //left bottom
+		RectVertex(right,	top,	0.0f,	SCREEN_WIDTH / 80.0f,	0.0f ), //right top
+		RectVertex(right,	bottom, 0.0f,	SCREEN_WIDTH / 80.0f,	SCREEN_HEIGHT / 80.0f ), //right bottom
+	};
+
+	bufferData.pSysMem = sverts;
+	hr = m_d3d11Device->CreateBuffer(&vbDesc, &bufferData, &m_pScreenRectVertexBuffer);
+
 	//???!!!delete [] verts;
 
 	///////////////////////////////////////////
@@ -402,6 +488,27 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 {
 	//App::VRender(elapsedTime, totalTime);
 
+	UINT stride = sizeof(RectVertex);
+	UINT offset = 0;
+
+	////////////////////////////////////////////
+	//Render background
+	m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_pScreenRectVertexBuffer, &stride, &offset);
+	m_d3d11DeviceContext->IASetInputLayout(m_pTextureLayout);
+	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_d3d11DeviceContext->VSSetShader(m_pFinalPassVertexShader, 0, 0);
+	m_d3d11DeviceContext->VSSetConstantBuffers(0, 1, &m_pcbMatrixTex);
+	m_d3d11DeviceContext->PSSetShader(m_pBackgroundPixelShader, 0, 0);
+	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pBackgroundSRV);
+	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pTiledSampler);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, nullptr);
+	m_d3d11DeviceContext->RSSetViewports(1, &m_viewport);
+	m_d3d11DeviceContext->Draw(6, 0);
+
+	//unbind resources
+	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &pNullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, NULL);
+
 	////////////////////////////////////////////
 	//Render meshes
 
@@ -409,6 +516,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->IASetInputLayout(m_pGeometryLayout);
 	m_d3d11DeviceContext->VSSetShader(m_pLightningVertexShader, 0, 0);
 	m_d3d11DeviceContext->PSSetShader(m_pLightningPixelShader, 0, 0);
+	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pAnisotropicSampler);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, nullptr);
 
 	for (Meshes::iterator it = m_meshes.begin(); it != m_meshes.end(); it++)
@@ -418,22 +526,26 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 		(*it)->VPostRender(this, elapsedTime, totalTime);
 	}
 
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, m_pDepthStencilView);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, nullptr);
 
 	//*******************************************************************//
 
 	////////////////////////////////////////////
 	//Generate mask (for blurring)
-	//m_d3d11DeviceContext->IASetVertexBuffers(
+	m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_pRectVertexBuffer, &stride, &offset);
+	m_d3d11DeviceContext->IASetInputLayout(m_pTextureLayout);
+	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_d3d11DeviceContext->VSSetShader(m_pFinalPassVertexShader, 0, 0);
+	m_d3d11DeviceContext->VSSetConstantBuffers(0, 1, &m_pcbMatrixTex);
 	m_d3d11DeviceContext->PSSetShader(m_pMaskPixelShader, 0, 0);
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pDepthStencilSRV);
+	m_d3d11DeviceContext->PSSetConstantBuffers(0, 1, &m_pcbScreen);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pMaskRTV, nullptr);
 	
-	//??????
+	m_d3d11DeviceContext->Draw(6, 0);
 
-	m_d3d11DeviceContext->PSGetShaderResources(0, 1, &pNullSRV);
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, nullptr);
+	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &pNullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, nullptr); 
 	//*******************************************************************//
 
 	////////////////////////////////////////////
@@ -460,8 +572,8 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	/////////////////////////////////////////////
 	//Render texture to the screen
-	UINT stride = sizeof(RectVertex);
-	UINT offset = 0;
+	//UINT stride = sizeof(RectVertex);
+	//UINT offset = 0;
 	m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_pRectVertexBuffer, &stride, &offset);
 	m_d3d11DeviceContext->IASetInputLayout(m_pTextureLayout);
 	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -488,6 +600,8 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, color);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pMaskRTV, color);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pSceneRTV, color);
+
+	m_d3d11DeviceContext->ClearDepthStencilView(m_pDepthStencilView, 0, 0, 0);
 
 	//*******************************************************************//
 }

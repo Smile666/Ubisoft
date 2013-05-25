@@ -10,6 +10,7 @@ cbuffer MatrixBufferTex
 //ShaderResource Views
 /////////////////////////////////////////////
 Texture2D sceneTexture	:	register( t0 );
+SamplerState tiledSampler	:	register( s0 );
 
 /////////////////////////////////////////////
 //Structures
@@ -39,5 +40,11 @@ ps_input VS( vs_input input )
 float4 PS( ps_input input ) : SV_TARGET
 {
 	float4 color = sceneTexture.Load(int3(input.pos.xy, 0));
+	return color;
+}
+
+float4 PSBackground( ps_input input ) : SV_TARGET
+{
+	float4 color = sceneTexture.Sample(tiledSampler, input.texCoord);
 	return color;
 }

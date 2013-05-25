@@ -104,6 +104,7 @@
     <ClCompile Include="Source\Scene\Light.cpp" />
     <ClCompile Include="Source\Scene\Mesh.cpp" />
     <ClCompile Include="Source\Scene\Plane.cpp" />
+    <ClCompile Include="Source\Time\Timer.cpp" />
     <ClCompile Include="Source\winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +115,7 @@
     <ClInclude Include="Source\Scene\Light.h" />
     <ClInclude Include="Source\Scene\Mesh.h" />
     <ClInclude Include="Source\Scene\Plane.h" />
+    <ClInclude Include="Source\Time\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Blur.hlsl">

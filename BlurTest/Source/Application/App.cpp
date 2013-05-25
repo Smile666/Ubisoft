@@ -3,6 +3,7 @@
 
 App::App()
 {
+	m_pTimer = new Timer();
 }
 
 App::~App()
@@ -11,6 +12,8 @@ App::~App()
 	SAFE_RELEASE(m_SwapChain);
 	SAFE_RELEASE(m_d3d11DeviceContext);
 	SAFE_RELEASE(m_d3d11Device);
+
+	delete m_pTimer;
 }
 
 bool App::InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, bool bWindowed)
@@ -204,8 +207,12 @@ int App::Run()
 		}
 		else
 		{
-			VUpdate(0, 0);
-			VRender(0, 0);
+			m_pTimer->Tick();
+
+			//VUpdate(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
+			//VRender(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
+			VUpdate(1.0f, 1.0f);
+			VRender(1.0f, 1.0f);
 		}
 	}
 

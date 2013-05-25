@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <Windows.h>
+#include "../Time/Timer.h"
 
 class App
 {
@@ -59,6 +59,8 @@ private:
 	LPCTSTR		m_windowClassName;
 	HINSTANCE	m_hInstance;
 	bool		m_bWindowed;
+
+	Timer*	m_pTimer;
 
 protected:
 	//===============================

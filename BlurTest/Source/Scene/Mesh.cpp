@@ -100,22 +100,26 @@ bool Mesh::VInitialize(ID3D11Device* pd3d11Device)
 
 	/******	Initialize shader resource views ******/
 	HRESULT hr;
-	hr = D3DX11CreateShaderResourceViewFromFile(pd3d11Device, L"Resources\\diffuse.jpg", NULL, NULL, &m_pDiffuseSRV, NULL);
+	hr = D3DX11CreateShaderResourceViewFromFile(pd3d11Device, L"Resources\\diffuse.bmp", NULL, NULL, &m_pDiffuseSRV, NULL);
+	hr = D3DX11CreateShaderResourceViewFromFile(pd3d11Device, L"Resources\\normal.bmp", NULL, NULL, &m_pNormalSRV, NULL);
+	hr = D3DX11CreateShaderResourceViewFromFile(pd3d11Device, L"Resources\\height.jpg", NULL, NULL, &m_pHeightSRV, NULL);
 
 	return true;
 }
 
 void Mesh::VUpdate(App* pApp, const real elapsedTime, const real totalTime)
 {
-	m_fPitch += 0.001f;
-	m_fYaw += 0.001f;
-	m_fRoll += 0.001f;
+	m_fPitch += 0.001f * elapsedTime;
+	m_fYaw += 0.001f * elapsedTime;
+	m_fRoll += 0.001f * elapsedTime;
 }
 
 void Mesh::VPreRender(App* pApp, const real elapsedTime, const real totalTime)
 {
 	pApp->GetImmediateContext()->IASetVertexBuffers(0, 3, m_ppBuffers, m_pStride, m_pOffset);
 	pApp->GetImmediateContext()->PSSetShaderResources(0, 1, &m_pDiffuseSRV);
+	pApp->GetImmediateContext()->PSSetShaderResources(1, 1, &m_pNormalSRV);
+	pApp->GetImmediateContext()->PSSetShaderResources(3, 1, &m_pHeightSRV);
 
 	//fill and bind constant buffer
 	pApp->m_matrixData.World = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll));

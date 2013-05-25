@@ -209,6 +209,33 @@ void BlurApp::InitializeDepthBuffer()
 	{
 		assert(0 && "Error creating shader resource view for depth texture!");
 	}
+
+	// ******************************************
+	//	Initialize depth buffer states
+	// ******************************************
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	depthStencilDesc.DepthEnable = true;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDesc.StencilEnable = false;
+	//depthStencilDesc.StencilReadMask = 0xFF;
+	//depthStencilDesc.StencilWriteMask = 0xFF;
+	
+	//create depth stencil state
+	hr = m_d3d11Device->CreateDepthStencilState(&depthStencilDesc, &m_pDepthEnable);
+	if (hr != S_OK)
+	{
+		assert(0 && "error!!!");
+	}
+
+	depthStencilDesc.DepthEnable = false;
+	hr = m_d3d11Device->CreateDepthStencilState(&depthStencilDesc, &m_pDepthDisable);
+	if (hr != S_OK)
+	{
+		assert(0 && "error!!!");
+	}
+
 }
 
 void BlurApp::InitializeSamplerStates()
@@ -309,6 +336,18 @@ bool BlurApp::VInitSimulation()
 	ID3D11ClassInstance* pLambertWrapAround = NULL;
 	hr = pClassLinkage->GetClassInstance("g_lambertWrapAround", 0, &pLambertWrapAround);
 	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_LambertWrapAround, (ID3D11ClassInstance*&&)pLambertWrapAround));
+
+	ID3D11ClassInstance* pPhong = NULL;
+	hr = pClassLinkage->GetClassInstance("g_phong", 0, &pPhong);
+	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Phong, (ID3D11ClassInstance*&&)pPhong));
+
+	ID3D11ClassInstance* pBlinn = NULL;
+	hr = pClassLinkage->GetClassInstance("g_blinn", 0, &pBlinn);
+	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Blinn, (ID3D11ClassInstance*&&)pBlinn));
+
+	ID3D11ClassInstance* pToon = NULL;
+	hr = pClassLinkage->GetClassInstance("g_toon", 0, &pToon);
+	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Toon, (ID3D11ClassInstance*&&)pToon));
 	
 	///////////////////////////////////
 	//Initialize layout
@@ -387,6 +426,7 @@ bool BlurApp::VInitSimulation()
 	/////////////////////////////////////
 	//Create mask shader
 	ID3D10Blob*	pCompiledMaskPixelShader;
+	ID3D10Blob* pCompiledMaskModifiedPixelShader;
 
 	hr = D3DX11CompileFromFile(L"Shaders\\MaskGeneration.hlsl", 0, 0, "MaskSimplePS", "ps_5_0", 0, 0, 0, &pCompiledMaskPixelShader, &pErrors, 0);
 	if (hr != S_OK)
@@ -397,9 +437,19 @@ bool BlurApp::VInitSimulation()
 
 	hr = m_d3d11Device->CreatePixelShader(pCompiledMaskPixelShader->GetBufferPointer(), pCompiledMaskPixelShader->GetBufferSize(), nullptr, &m_pMaskPixelShader); 
 
+	hr = D3DX11CompileFromFile(L"Shaders\\MaskGeneration.hlsl", 0, 0, "MaskDepthPS", "ps_5_0", 0, 0, 0, &pCompiledMaskModifiedPixelShader, &pErrors, 0);
+	if (hr != S_OK)
+	{
+		if (pErrors != 0)
+			OutputDebugStringA((char*)pErrors->GetBufferPointer());
+	}
+
+	hr = m_d3d11Device->CreatePixelShader(pCompiledMaskModifiedPixelShader->GetBufferPointer(), pCompiledMaskModifiedPixelShader->GetBufferSize(), nullptr, &m_pMaskModifiedPixelShader); 
+
 	//release blobs
 	pCompiledBackgroundPixelShader->Release();
 	pCompiledMaskPixelShader->Release();
+	pCompiledMaskModifiedPixelShader->Release();
 	pCompiledHorizontalGaussComputeShader->Release();
 	pCompiledVerticalGaussComputeShader->Release();
 	pCompiledLightingVertexShader->Release();
@@ -449,7 +499,10 @@ bool BlurApp::VInitSimulation()
 
 	LightingData lightingData;
 	lightingData.lambertLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-	lightingData.lambertWALightColorAndFactor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.5f);
+	lightingData.lambertWALightColorAndFactor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.3f);
+	lightingData.phongLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 5.0f);
+	lightingData.blinnLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 20.0f);
+	lightingData.toonLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	m_d3d11DeviceContext->UpdateSubresource(m_pcbLighting, 0, nullptr, &lightingData, 0, 0);
 
 	/////////////////////////////////////////////
@@ -542,6 +595,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->PSSetShader(m_pBackgroundPixelShader, 0, 0);
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pBackgroundSRV);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pTiledSampler);
+	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthDisable, 1);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, nullptr);
 	m_d3d11DeviceContext->RSSetViewports(1, &m_viewport);
 	m_d3d11DeviceContext->Draw(6, 0);
@@ -552,14 +606,16 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	////////////////////////////////////////////
 	//Render meshes
+	m_d3d11DeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 1);
 
 	//set necessary states first
 	m_d3d11DeviceContext->IASetInputLayout(m_pGeometryLayout);
 	m_d3d11DeviceContext->VSSetShader(m_pLightingVertexShader, 0, 0);
-	m_d3d11DeviceContext->PSSetShader(m_pLightingPixelShader, &m_lightingClassInstances[LM_Lambert], 1);
+	m_d3d11DeviceContext->PSSetShader(m_pLightingPixelShader, &m_lightingClassInstances[LM_Blinn], 1);
 	m_d3d11DeviceContext->PSSetConstantBuffers(0, 1, &m_pcbLighting);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pAnisotropicSampler);
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, nullptr);
+	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthEnable, 1);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, m_pDepthStencilView);
 
 	for (Meshes::iterator it = m_meshes.begin(); it != m_meshes.end(); it++)
 	{
@@ -579,9 +635,10 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_d3d11DeviceContext->VSSetShader(m_pFinalPassVertexShader, 0, 0);
 	m_d3d11DeviceContext->VSSetConstantBuffers(0, 1, &m_pcbMatrixTex);
-	m_d3d11DeviceContext->PSSetShader(m_pMaskPixelShader, 0, 0);
+	m_d3d11DeviceContext->PSSetShader(m_pMaskModifiedPixelShader, 0, 0);
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pDepthStencilSRV);
 	m_d3d11DeviceContext->PSSetConstantBuffers(0, 1, &m_pcbScreen);
+	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthDisable, 1);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pMaskRTV, nullptr);
 	
 	m_d3d11DeviceContext->Draw(6, 0);
@@ -624,6 +681,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->PSSetShader(m_pFinalPassPixelShader, 0, 0);
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pSceneSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pbbRenderTargetView, nullptr);
+	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthDisable, 1);
 	m_d3d11DeviceContext->RSSetViewports(1, &m_viewport);
 	m_d3d11DeviceContext->Draw(6, 0);
 
@@ -643,7 +701,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pMaskRTV, color);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pSceneRTV, color);
 
-	m_d3d11DeviceContext->ClearDepthStencilView(m_pDepthStencilView, 0, 0, 0);
+	//m_d3d11DeviceContext->ClearDepthStencilView(m_pDepthStencilView, 0, 0);
 
 	//*******************************************************************//
 }

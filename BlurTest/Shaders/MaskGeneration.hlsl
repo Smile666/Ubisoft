@@ -34,11 +34,17 @@ float4 MaskSimplePS( ps_input input ) : SV_TARGET
 	}
 }
 
-/*float4 MaskDepthPS( ps_input input ) : SV_TARGET
+float4 MaskDepthPS( ps_input input ) : SV_TARGET
 {
 	if (input.pos.x < (screen_width / 2.0f))
-		return float(0.0f, 0.0f, 0.0f, 0.0f);
+		return float4(0.0f, 0.0f, 0.0f, 0.0f);
 	else
 	{
-		//calculate depth
-		float depth */
+		//get depth data
+		float depth = depthMap.Load(int3(input.pos.x, input.pos.y, 0.0f));
+		if (depth < 1.0f)
+			return float4(1.0f, 1.0f, 1.0f, 1.0f);
+		else
+			return float4(0.0f, 0.0f, 0.0f, 0.0f);
+	} 
+}

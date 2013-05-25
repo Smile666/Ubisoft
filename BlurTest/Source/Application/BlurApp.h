@@ -20,6 +20,7 @@ protected:
 	/////////////////////////////////////
 	//ID3D11ComputeShader*	m_pMaskGenerationComputeShader;
 	ID3D11PixelShader*		m_pMaskPixelShader;
+	ID3D11PixelShader*		m_pMaskModifiedPixelShader;
 
 	ID3D11VertexShader*		m_pLightingVertexShader;
 	ID3D11PixelShader*		m_pLightingPixelShader;
@@ -61,7 +62,8 @@ protected:
 	//Depth Buffer
 	///////////////////////////////////////
 	ID3D11Texture2D*			m_pDepthStencilTexture;
-	ID3D11DepthStencilState*	m_pDepthStencilTest;
+	ID3D11DepthStencilState*	m_pDepthEnable;
+	ID3D11DepthStencilState*	m_pDepthDisable;
 	ID3D11DepthStencilView*		m_pDepthStencilView;
 	ID3D11ShaderResourceView*	m_pDepthStencilSRV;
 
@@ -79,8 +81,20 @@ protected:
 	ID3D11Buffer*	m_pcbLighting;
 	struct LightingData
 	{
+		/*** Lambert ***/
 		XMVECTOR	lambertLightColor;
+
+		/*** Lambert Wrap Around ***/
 		XMVECTOR	lambertWALightColorAndFactor; //store factor as last vector component
+
+		/*** Phong ***/
+		XMVECTOR	phongLightColorAndSpecPower; //store spec power as last vector component
+
+		/*** Blinn ***/
+		XMVECTOR	blinnLightColorAndSpecPower; //store spec power as last vector component
+
+		/*** Toon ***/
+		XMVECTOR	toonLightColor;
 	};
 	//LightingData	m_lightingData;
 
@@ -138,8 +152,17 @@ protected:
 		LM_Lambert,
 		LM_LambertWrapAround,
 		LM_Phong,
+		LM_Blinn,
+		LM_Toon,
 	};
 	LightingMode m_mode;
+
+	enum MaskMode
+	{
+		MM_Everything,
+		MM_OnlyObject,
+	};
+	MaskMode m_maskMode;
 
 	typedef std::map<LightingMode, ID3D11ClassInstance*>	LightingModeMap;
 	LightingModeMap	m_lightingClassInstances;

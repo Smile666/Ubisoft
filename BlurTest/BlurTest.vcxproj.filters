@@ -13,6 +13,9 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{00d91aff-f9d0-49c4-9912-9a50743aadbd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Time">
+      <UniqueIdentifier>{065e0f53-b86b-4bf5-8a8d-de143de03522}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\winmain.cpp" />
@@ -35,6 +38,9 @@
     <ClCompile Include="Source\Scene\Light.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Time\Timer.cpp">
+      <Filter>Time</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\App.h">
@@ -55,6 +61,9 @@
     </ClInclude>
     <ClInclude Include="Source\Scene\Light.h">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Time\Timer.h">
+      <Filter>Time</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

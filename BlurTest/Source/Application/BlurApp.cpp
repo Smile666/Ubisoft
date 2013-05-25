@@ -9,6 +9,8 @@ ID3D11UnorderedAccessView*	pNullUAV;
 
 BlurApp::BlurApp()
 {
+	m_mode = LM_Lambert;
+
 	m_vCameraPos = XMVectorSet(0.0f, 0.0f, -5.0f, 1.0f);
 	m_vCameraTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 	m_vCameraUp	= XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); 
@@ -107,7 +109,7 @@ void BlurApp::InitializeTextures()
 		assert(0 && "error");
 	}
 
-	hr = D3DX11CreateShaderResourceViewFromFile(m_d3d11Device, L"Resources\\bg.jpg", NULL, NULL, &m_pBackgroundSRV, NULL);
+	hr = D3DX11CreateShaderResourceViewFromFile(m_d3d11Device, L"Resources\\bg_1.jpg", NULL, NULL, &m_pBackgroundSRV, NULL);
 
 
 	// ******************************************
@@ -229,9 +231,9 @@ void BlurApp::InitializeSamplerStates()
 	}
 
 	sDesc.Filter = D3D11_FILTER_ANISOTROPIC;;
-	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
-	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
-	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 
 	hr = m_d3d11Device->CreateSamplerState(&sDesc, &m_pTiledSampler);
 	if (hr != S_OK)
@@ -257,26 +259,56 @@ bool BlurApp::VInitSimulation()
 
 	///////////////////////////////////
 	//Create shaders
-	ID3D10Blob* pCompiledLightningVertexShader;
-	ID3D10Blob* pCompiledLightningPixelShader;
+	ID3D10Blob* pCompiledLightingVertexShader;
+	ID3D10Blob* pCompiledLightingPixelShader;
 	ID3D10Blob* pErrors;
 
-	hr = D3DX11CompileFromFile(L"Shaders\\Lightning.hlsl", 0, 0, "VS", "vs_5_0", 0, 0, 0, &pCompiledLightningVertexShader, &pErrors, 0);
+	hr = D3DX11CompileFromFile(L"Shaders\\Lighting.hlsl", 0, 0, "VS", "vs_5_0", 0, 0, 0, &pCompiledLightingVertexShader, &pErrors, 0);
 	if (hr != S_OK)
 	{
 		if (pErrors != 0)
 			OutputDebugStringA((char*)pErrors->GetBufferPointer());
 	}
 
-	hr = D3DX11CompileFromFile(L"Shaders\\Lightning.hlsl", 0, 0, "PS", "ps_5_0", 0, 0, 0, &pCompiledLightningPixelShader, &pErrors, 0);
+	
+
+	hr = D3DX11CompileFromFile(L"Shaders\\Lighting.hlsl", 0, 0, "PS", "ps_5_0", 0, 0, 0, &pCompiledLightingPixelShader, &pErrors, 0);
 	if (hr != S_OK)
 	{
 		if (pErrors != 0)
 			OutputDebugStringA((char*)pErrors->GetBufferPointer());
 	}
 
-	hr = m_d3d11Device->CreateVertexShader(pCompiledLightningVertexShader->GetBufferPointer(), pCompiledLightningVertexShader->GetBufferSize(), nullptr, &m_pLightningVertexShader);
-	hr = m_d3d11Device->CreatePixelShader(pCompiledLightningPixelShader->GetBufferPointer(), pCompiledLightningPixelShader->GetBufferSize(), nullptr, &m_pLightningPixelShader);
+	ID3D11ClassLinkage*	pClassLinkage = NULL;
+	m_d3d11Device->CreateClassLinkage(&pClassLinkage);
+	hr = m_d3d11Device->CreateVertexShader(pCompiledLightingVertexShader->GetBufferPointer(), pCompiledLightingVertexShader->GetBufferSize(), nullptr, &m_pLightingVertexShader);
+	
+	hr = m_d3d11Device->CreatePixelShader(pCompiledLightingPixelShader->GetBufferPointer(), pCompiledLightingPixelShader->GetBufferSize(), pClassLinkage, &m_pLightingPixelShader);
+
+	//create shader reflection
+	//ID3D11ShaderReflection*	pReflector = NULL;
+	//D3DReflect(	pCompiledLightingPixelShader->GetBufferPointer(),
+	//			pCompiledLightingPixelShader->GetBufferSize(),
+	//			IID_ID3D11ShaderReflection, (void**)&pReflector);
+
+	//D3D11_SHADER_VARIABLE_DESC lambertDesc;
+	//ZeroMemory(&lambertDesc, sizeof(D3D11_SHADER_VARIABLE_DESC));
+
+	//ID3D11ShaderReflectionVariable* pLambertClass = NULL;
+	//pLambertClass = pReflector->GetVariableByName("lighting");
+	//hr = pLambertClass->GetDesc(&lambertDesc);
+	//D3D11_SHADER_BUFFER_DESC cbDesc;
+	//ID3D11ShaderReflectionConstantBuffer* pBuffer = NULL;
+	//pBuffer = pReflector->GetConstantBufferByName("LightingBuffer");
+	//hr = pBuffer->GetDesc(&cbDesc);
+
+	ID3D11ClassInstance* pLambert = NULL;
+	hr = pClassLinkage->GetClassInstance("g_lambert", 0, &pLambert);
+	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Lambert, (ID3D11ClassInstance*&&)pLambert));
+
+	ID3D11ClassInstance* pLambertWrapAround = NULL;
+	hr = pClassLinkage->GetClassInstance("g_lambertWrapAround", 0, &pLambertWrapAround);
+	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_LambertWrapAround, (ID3D11ClassInstance*&&)pLambertWrapAround));
 	
 	///////////////////////////////////
 	//Initialize layout
@@ -289,7 +321,7 @@ bool BlurApp::VInitSimulation()
 		{ "BINORMAL",  0, DXGI_FORMAT_R32G32B32_FLOAT, 2, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 
-	m_d3d11Device->CreateInputLayout(layout, 5, pCompiledLightningVertexShader->GetBufferPointer(), pCompiledLightningVertexShader->GetBufferSize(), &m_pGeometryLayout);
+	m_d3d11Device->CreateInputLayout(layout, 5, pCompiledLightingVertexShader->GetBufferPointer(), pCompiledLightingVertexShader->GetBufferSize(), &m_pGeometryLayout);
 
 	/////////////////////////////////////
 	//Create blur shader
@@ -370,8 +402,8 @@ bool BlurApp::VInitSimulation()
 	pCompiledMaskPixelShader->Release();
 	pCompiledHorizontalGaussComputeShader->Release();
 	pCompiledVerticalGaussComputeShader->Release();
-	pCompiledLightningVertexShader->Release();
-	pCompiledLightningPixelShader->Release();
+	pCompiledLightingVertexShader->Release();
+	pCompiledLightingPixelShader->Release();
 	pCompiledTextureVertexShader->Release();
 	pCompiledTexturePixelShader->Release();
 
@@ -410,6 +442,15 @@ bool BlurApp::VInitSimulation()
 	screenBuffer.screen_width = SCREEN_WIDTH;
 	screenBuffer.screen_height = SCREEN_HEIGHT;
 	m_d3d11DeviceContext->UpdateSubresource(m_pcbScreen, 0, nullptr, &screenBuffer, 0, 0);
+
+	//lighting buffer
+	bufferDesc.ByteWidth = sizeof(LightingData);
+	m_d3d11Device->CreateBuffer(&bufferDesc, 0, &m_pcbLighting);
+
+	LightingData lightingData;
+	lightingData.lambertLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+	lightingData.lambertWALightColorAndFactor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.5f);
+	m_d3d11DeviceContext->UpdateSubresource(m_pcbLighting, 0, nullptr, &lightingData, 0, 0);
 
 	/////////////////////////////////////////////
 	//Vertex Buffer Description 
@@ -450,11 +491,11 @@ bool BlurApp::VInitSimulation()
 	RectVertex sverts [] = 
 	{
 		RectVertex(left,	top,	0.0f,	0.0f,			0.0f ), //left top
-		RectVertex(right,	top,	0.0f,	SCREEN_WIDTH / 80.0f,	0.0f ), //right top
-		RectVertex(left,	bottom, 0.0f,	0.0f,			SCREEN_HEIGHT / 80.0f ), //left bottom
-		RectVertex(left,	bottom, 0.0f,	0.0f,			SCREEN_HEIGHT / 80.0f ), //left bottom
-		RectVertex(right,	top,	0.0f,	SCREEN_WIDTH / 80.0f,	0.0f ), //right top
-		RectVertex(right,	bottom, 0.0f,	SCREEN_WIDTH / 80.0f,	SCREEN_HEIGHT / 80.0f ), //right bottom
+		RectVertex(right,	top,	0.0f,	SCREEN_WIDTH / 37.0f,	0.0f ), //right top
+		RectVertex(left,	bottom, 0.0f,	0.0f,			SCREEN_HEIGHT / 37.0f ), //left bottom
+		RectVertex(left,	bottom, 0.0f,	0.0f,			SCREEN_HEIGHT / 37.0f ), //left bottom
+		RectVertex(right,	top,	0.0f,	SCREEN_WIDTH / 37.0f,	0.0f ), //right top
+		RectVertex(right,	bottom, 0.0f,	SCREEN_WIDTH / 37.0f,	SCREEN_HEIGHT / 37.0f ), //right bottom
 	};
 
 	bufferData.pSysMem = sverts;
@@ -514,8 +555,9 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	//set necessary states first
 	m_d3d11DeviceContext->IASetInputLayout(m_pGeometryLayout);
-	m_d3d11DeviceContext->VSSetShader(m_pLightningVertexShader, 0, 0);
-	m_d3d11DeviceContext->PSSetShader(m_pLightningPixelShader, 0, 0);
+	m_d3d11DeviceContext->VSSetShader(m_pLightingVertexShader, 0, 0);
+	m_d3d11DeviceContext->PSSetShader(m_pLightingPixelShader, &m_lightingClassInstances[LM_Lambert], 1);
+	m_d3d11DeviceContext->PSSetConstantBuffers(0, 1, &m_pcbLighting);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pAnisotropicSampler);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, nullptr);
 

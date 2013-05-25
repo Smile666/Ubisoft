@@ -5,9 +5,12 @@
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3d10.h>
+#include <D3D11Shader.h>
+#include <D3Dcompiler.h>
 
 #include <vector>
 #include <list>
+#include <map>
 
 #include <assert.h>
 

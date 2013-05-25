@@ -19,13 +19,18 @@ protected:
 	//Shaders
 	/////////////////////////////////////
 	//ID3D11ComputeShader*	m_pMaskGenerationComputeShader;
-	ID3D11PixelShader*	m_pMaskPixelShader;
-	ID3D11VertexShader*	m_pLightningVertexShader;
-	ID3D11PixelShader*	m_pLightningPixelShader;
+	ID3D11PixelShader*		m_pMaskPixelShader;
+
+	ID3D11VertexShader*		m_pLightingVertexShader;
+	ID3D11PixelShader*		m_pLightingPixelShader;
+
+
 	ID3D11ComputeShader*	m_pBlurComputeShader;
-	ID3D11VertexShader*	m_pFinalPassVertexShader;
-	ID3D11PixelShader*	m_pFinalPassPixelShader;
-	ID3D11PixelShader*	m_pBackgroundPixelShader;
+
+	ID3D11VertexShader*		m_pFinalPassVertexShader;
+	ID3D11PixelShader*		m_pFinalPassPixelShader;
+
+	ID3D11PixelShader*		m_pBackgroundPixelShader;
 
 	ID3D11ComputeShader*	m_pGaussHorizontalComputeShader;
 	ID3D11ComputeShader*	m_pGaussVerticalComputeShader;
@@ -61,7 +66,7 @@ protected:
 	ID3D11ShaderResourceView*	m_pDepthStencilSRV;
 
 	/////////////////////////////////////
-	//constant buffer
+	//constant buffers
 	/////////////////////////////////////
 	ID3D11Buffer*	m_pcbScreen;
 	struct ScreenData
@@ -70,6 +75,14 @@ protected:
 		float		screen_height;
 		XMFLOAT2	pad;
 	};
+
+	ID3D11Buffer*	m_pcbLighting;
+	struct LightingData
+	{
+		XMVECTOR	lambertLightColor;
+		XMVECTOR	lambertWALightColorAndFactor; //store factor as last vector component
+	};
+	//LightingData	m_lightingData;
 
 	ID3D11ShaderResourceView*	m_pBackgroundSRV;
 
@@ -119,6 +132,17 @@ protected:
 		cylinder_shape,
 	};
 	Shape m_currentShape;
+
+	enum LightingMode
+	{
+		LM_Lambert,
+		LM_LambertWrapAround,
+		LM_Phong,
+	};
+	LightingMode m_mode;
+
+	typedef std::map<LightingMode, ID3D11ClassInstance*>	LightingModeMap;
+	LightingModeMap	m_lightingClassInstances;
 
 public:
 	BlurApp();

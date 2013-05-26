@@ -88,3 +88,17 @@ class cToonLighting	:	cLighting
 		return diffuse * float4(m_vLightColor, 1.0f);
 	}
 };
+
+class cIsotropicWard	:	cLighting
+{
+	float m_fRoughness;
+
+	float4 IlluminateSpecular(float3 vNormal, float3 vLightDir, float3 vViewDir)
+	{
+		float3 h = (vLightDir + vViewDir) / length(vLightDir + vViewDir);
+		float hDotn = dot(h, vNormal);
+		float hDotn2 = hDotn*hDotn;
+
+		return float4(m_vLightColor, 1.0f) * exp( - m_fRoughness * (1.0f - hDotn2) / hDotn2);
+	}
+};

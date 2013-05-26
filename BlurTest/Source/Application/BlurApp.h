@@ -96,6 +96,9 @@ protected:
 
 		/*** Toon ***/
 		XMVECTOR	toonLightColor;
+
+		/*** Isotropic Ward ***/
+		XMVECTOR	isotropicWardLightColorAndRoughness; //store roughness factor as last vector component
 	};
 	//LightingData	m_lightingData;
 
@@ -157,6 +160,7 @@ protected:
 		LM_Phong,
 		LM_Blinn,
 		LM_Toon,
+		LM_IsotropicWard,
 		LM_NumLightingModes,
 	};
 	LightingMode m_mode;

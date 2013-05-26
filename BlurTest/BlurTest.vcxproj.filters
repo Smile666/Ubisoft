@@ -47,6 +47,9 @@
     <ClCompile Include="Source\gui\Text.cpp">
       <Filter>gui</Filter>
     </ClCompile>
+    <ClCompile Include="Source\gui\Font.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application\App.h">
@@ -74,6 +77,12 @@
     <ClInclude Include="Source\gui\Text.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="Source\gui\Font.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Application\Interfaces.h">
+      <Filter>Application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Blur.hlsl">
@@ -89,6 +98,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\Gauss.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\FontVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\FontPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

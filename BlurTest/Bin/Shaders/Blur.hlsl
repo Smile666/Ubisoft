@@ -13,6 +13,14 @@ static const float kernel[7] = {
 	0.030078323, 0.1049833664, 0.222250419, 0.285375187, 0.222240419, 0.104983664, 0.030078323
 };
 
+//static const float kernel[7] = {
+//	0.01, 0.04, 0.15, 0.6, 0.15, 0.04, 0.01
+//};
+
+//static const float kernel[7] = {
+//	0, 0, 0, 1, 0, 0, 0
+//};
+
 groupshared float4 hor_pixels[3+group_size_x+3][3];
 
 //Horizontal blur
@@ -22,7 +30,8 @@ void CS_Horizontal( uint3 DispatchThreadId : SV_DispatchThreadID , uint3 GroupTh
 	//read the data from the texture so, that we don't load any data from texture aymore
 	float4 texel = InputTex.Load(DispatchThreadId);
 
-	bool active = MaskTex.Load(DispatchThreadId).x > 0;
+	float value = MaskTex.Load(DispatchThreadId).x;
+	bool active = value > 0;
 
 	if (active)
 	{
@@ -85,11 +94,13 @@ void CS_Horizontal( uint3 DispatchThreadId : SV_DispatchThreadID , uint3 GroupTh
 		finalColor += hor_pixels[GI+6][0];
 
 		//write the result to the output resource
-		OutputTex[DispatchThreadId.xy] = finalColor;
+		OutputTex[DispatchThreadId.xy] = finalColor * value + texel * (1 - value);
+		//OutputTex[DispatchThreadId.xy] = float4(1.0f, 1.0f, 1.0f, 1.0f) * value;
 	}
 	else
 	{
 		OutputTex[DispatchThreadId.xy] = texel;
+		//OutputTex[DispatchThreadId.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 	
 }
@@ -107,7 +118,8 @@ void CS_Vertical( uint3 DispatchThreadId : SV_DispatchThreadID, uint3 GroupThrea
 	//read the data from the texture so, that we don'tload any data from texture aymore
 	float4 texel = VerInputTex.Load(DispatchThreadId);
 
-	bool active = VerMaskTex.Load(DispatchThreadId).x > 0;
+	float value = VerMaskTex.Load(DispatchThreadId).x;
+	bool active = value > 0;
 
 	if (active)
 	{
@@ -170,10 +182,12 @@ void CS_Vertical( uint3 DispatchThreadId : SV_DispatchThreadID, uint3 GroupThrea
 		finalColor += ver_pixels[GI+6][0];
 
 		//write the result to the output resource
-		VerOutputTex[DispatchThreadId.xy] = finalColor;
+		VerOutputTex[DispatchThreadId.xy] = finalColor * value + texel * (1 - value);
+		//VerOutputTex[DispatchThreadId.xy] = float4(1.0f, 1.0f, 1.0f, 1.0f) * value;
 	}
 	else
 	{
 		VerOutputTex[DispatchThreadId.xy] = texel;
+		//VerOutputTex[DispatchThreadId.xy] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 }

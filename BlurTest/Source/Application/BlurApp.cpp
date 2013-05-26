@@ -332,6 +332,10 @@ bool BlurApp::VInitSimulation()
 	ID3D11ClassInstance* pToon = NULL;
 	hr = pClassLinkage->GetClassInstance("g_toon", 0, &pToon);
 	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Toon, (ID3D11ClassInstance*&&)pToon));
+
+	ID3D11ClassInstance* pIsotropicWard = NULL;
+	hr = pClassLinkage->GetClassInstance("g_isotropicWard", 0, &pIsotropicWard);
+	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_IsotropicWard, (ID3D11ClassInstance*&&)pIsotropicWard));
 	
 	///////////////////////////////////
 	//Initialize layout
@@ -494,9 +498,10 @@ bool BlurApp::VInitSimulation()
 	LightingData lightingData;
 	lightingData.lambertLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	lightingData.lambertWALightColorAndFactor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.3f);
-	lightingData.phongLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 5.0f);
+	lightingData.phongLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 120.0f);
 	lightingData.blinnLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 22.0f);
 	lightingData.toonLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+	lightingData.isotropicWardLightColorAndRoughness = XMVectorSet(1.0f, 1.0f, 1.0f, 30.0f);
 	m_d3d11DeviceContext->UpdateSubresource(m_pcbLighting, 0, nullptr, &lightingData, 0, 0);
 
 	/////////////////////////////////////////////

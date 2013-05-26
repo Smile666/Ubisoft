@@ -82,6 +82,7 @@ cbuffer LightingBuffer	:	register( c0 )
 	cPhongLighting				g_phong;
 	cBlinnLighting				g_blinn;
 	cToonLighting				g_toon;
+	cIsotropicWard				g_isotropicWard;
 };
 
 float4 PS( ps_input input ) : SV_TARGET
@@ -90,11 +91,11 @@ float4 PS( ps_input input ) : SV_TARGET
 	float2 texCoord;
 	float height = heightMap.Sample(anisotropicSampler, input.texCoord).x;
 	height = (height * 2.0f) - 1.0f;
-	texCoord = input.texCoord + (height * input.viewDirTS.xy) * 0.04f;
+	texCoord = input.texCoord + (height * input.viewDirTS.xy) * 0.08f;
 	//texCoord = input.texCoord;
 
 	float4 diffuse = diffuseTexture.Sample(anisotropicSampler, texCoord);
-	float4 ambient = diffuse * 0.05f;
+	float4 ambient = diffuse * 0.1f;
 	float4 specular = float4(0.5f, 0.5f, 0.5f, 1.0f);
 
 	//calculate normal

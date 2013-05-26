@@ -47,6 +47,7 @@ public:
 
 	XMMATRIX	m_matrixView;
 	XMMATRIX	m_matrixProj; 
+	XMMATRIX	m_matrixOrtho;
 
 	//////////////////////////////
 	//Accessors

@@ -35,6 +35,7 @@ protected:
 
 	ID3D11ComputeShader*	m_pGaussHorizontalComputeShader;
 	ID3D11ComputeShader*	m_pGaussVerticalComputeShader;
+	ID3D11ComputeShader*	m_pGaussComputeShader;
 
 	/////////////////////////////////////
 	//Texture resources and views
@@ -139,6 +140,8 @@ public:
 
 protected:
 
+	virtual void VKeyPressed(const Key key);
+
 	enum Shape
 	{
 		box_shape,
@@ -154,6 +157,7 @@ protected:
 		LM_Phong,
 		LM_Blinn,
 		LM_Toon,
+		LM_NumLightingModes,
 	};
 	LightingMode m_mode;
 
@@ -161,6 +165,7 @@ protected:
 	{
 		MM_Everything,
 		MM_OnlyObject,
+		MM_NumMaskModes
 	};
 	MaskMode m_maskMode;
 

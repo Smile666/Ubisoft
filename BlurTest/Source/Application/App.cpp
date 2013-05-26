@@ -200,6 +200,9 @@ int App::Run()
 			case WM_QUIT:
 				DestroyWindow(m_hwnd);
 				return msg.wParam;
+			case WM_KEYDOWN:
+				VKeyPressed(msg.wParam);
+				break;
 			}
 
 		TranslateMessage(&msg);

@@ -17,6 +17,7 @@ public:
 	virtual void VRender(real elapsedTime, real totalTime);
 	int Run();
 
+
 	/////////////////////////////////////
 	//Constant Buffers
 	/////////////////////////////////////
@@ -63,6 +64,8 @@ private:
 	Timer*	m_pTimer;
 
 protected:
+
+	virtual void VKeyPressed(const Key key) {};
 	//===============================
 	//		DirectX11 Members
 	//===============================

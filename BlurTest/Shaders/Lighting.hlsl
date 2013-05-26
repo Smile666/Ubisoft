@@ -47,6 +47,7 @@ ps_input VS( vs_input input )
 {
 	//float3 lightPos = float3(-3.0f, 1.0f, 0.0f);
 	float3 lightPos = float3(0.0f, 0.0f, -3.0f);
+	//float3 lightPos = float3(-3.0f, 1.0f, -3.0f);
 	float3 cameraPos = float3(0.0f, 0.0f, -5.0f);
 
 	ps_input output;
@@ -89,12 +90,12 @@ float4 PS( ps_input input ) : SV_TARGET
 	float2 texCoord;
 	float height = heightMap.Sample(anisotropicSampler, input.texCoord).x;
 	height = (height * 2.0f) - 1.0f;
-	texCoord = input.texCoord + (height * input.viewDirTS.xy) * 0.08f;
+	texCoord = input.texCoord + (height * input.viewDirTS.xy) * 0.04f;
 	//texCoord = input.texCoord;
 
 	float4 diffuse = diffuseTexture.Sample(anisotropicSampler, texCoord);
-	float4 ambient = diffuse * 0.15f;
-	float4 specular = float4(0.7f, 0.7f, 0.7f, 1.0f);
+	float4 ambient = diffuse * 0.05f;
+	float4 specular = float4(0.5f, 0.5f, 0.5f, 1.0f);
 
 	//calculate normal
 	float3 normalWS = normalize(input.normalWS);

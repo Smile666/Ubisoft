@@ -100,6 +100,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\gui\Text.cpp" />
     <ClCompile Include="Source\Scene\Box.cpp" />
     <ClCompile Include="Source\Scene\Light.cpp" />
     <ClCompile Include="Source\Scene\Mesh.cpp" />
@@ -111,6 +112,7 @@
     <ClInclude Include="Source\Application\App.h" />
     <ClInclude Include="Source\Application\BlurApp.h" />
     <ClInclude Include="Source\BlurTestStd.h" />
+    <ClInclude Include="Source\gui\Text.h" />
     <ClInclude Include="Source\Scene\Box.h" />
     <ClInclude Include="Source\Scene\Light.h" />
     <ClInclude Include="Source\Scene\Mesh.h" />
@@ -125,6 +127,14 @@
     <FxCompile Include="Shaders\FinalPass.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\Gauss.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>

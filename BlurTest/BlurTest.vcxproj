@@ -100,10 +100,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\DirectX11\dx.cpp" />
     <ClCompile Include="Source\gui\Font.cpp" />
     <ClCompile Include="Source\gui\Text.cpp" />
     <ClCompile Include="Source\Scene\Box.cpp" />
-    <ClCompile Include="Source\Scene\Light.cpp" />
     <ClCompile Include="Source\Scene\Mesh.cpp" />
     <ClCompile Include="Source\Time\Timer.cpp" />
     <ClCompile Include="Source\winmain.cpp" />
@@ -113,15 +113,15 @@
     <ClInclude Include="Source\Application\BlurApp.h" />
     <ClInclude Include="Source\Application\Interfaces.h" />
     <ClInclude Include="Source\BlurTestStd.h" />
+    <ClInclude Include="Source\DirectX11\dx.h" />
     <ClInclude Include="Source\gui\Font.h" />
     <ClInclude Include="Source\gui\Text.h" />
     <ClInclude Include="Source\Scene\Box.h" />
-    <ClInclude Include="Source\Scene\Light.h" />
     <ClInclude Include="Source\Scene\Mesh.h" />
     <ClInclude Include="Source\Time\Timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\Blur.hlsl">
+    <FxCompile Include="Shaders\Gauss_Separable.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
@@ -161,7 +161,10 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\LightingHeader.hlsli" />
+    <None Include="Shaders\LightingHeader.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

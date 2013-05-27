@@ -1,3 +1,11 @@
+//========================================================================
+// Mesh.cpp
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #include "BlurTestStd.h"
 #include "Mesh.h"
 
@@ -84,15 +92,22 @@ Mesh::~Mesh()
 	SAFE_RELEASE(m_ppBuffers[2]);
 	SAFE_RELEASE(m_ppBuffers[1]);
 	SAFE_RELEASE(m_ppBuffers[0]);
+
+	SAFE_RELEASE(m_pHeightSRV);
+	SAFE_RELEASE(m_pSpecularSRV);
+	SAFE_RELEASE(m_pNormalSRV);
+	SAFE_RELEASE(m_pDiffuseSRV);
 }
 
 bool Mesh::VInitialize(ID3D11Device* pd3d11Device)
 {
+	//initialize stride array
 	m_pStride = new UINT[3];
 	m_pStride[0] = 12;
 	m_pStride[1] = 8;
 	m_pStride[2] = 36;
 
+	//initialize offset array
 	m_pOffset = new UINT[3];
 	m_pOffset[0] = 0;
 	m_pOffset[1] = 0;
@@ -110,29 +125,35 @@ bool Mesh::VInitialize(ID3D11Device* pd3d11Device)
 
 void Mesh::VUpdate(App* pApp, const float elapsedTime, const float totalTime)
 {
-	m_fPitch	+= 1.0f * elapsedTime;
-	m_fYaw		+= 1.0f * elapsedTime;
-	m_fRoll		+= 1.0f * elapsedTime;
+	m_fPitch	+= 0.4f * elapsedTime;
+	m_fYaw		+= 0.4f * elapsedTime;
+	m_fRoll		+= 0.4f * elapsedTime;
 }
 
 void Mesh::VPreRender(App* pApp, const float elapsedTime, const float totalTime)
 {
+	//set vertex buffers and shader resources
 	pApp->GetImmediateContext()->IASetVertexBuffers(0, 3, m_ppBuffers, m_pStride, m_pOffset);
 	pApp->GetImmediateContext()->PSSetShaderResources(0, 1, &m_pDiffuseSRV);
 	pApp->GetImmediateContext()->PSSetShaderResources(1, 1, &m_pNormalSRV);
 	pApp->GetImmediateContext()->PSSetShaderResources(2, 1, &m_pSpecularSRV);
 	pApp->GetImmediateContext()->PSSetShaderResources(3, 1, &m_pHeightSRV);
 
-	//fill and bind constant buffer
-	pApp->m_matrixData.World = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll));
-	pApp->m_matrixData.WorldView = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll) * pApp->m_matrixView);
-	pApp->m_matrixData.WorldViewProjection = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll) * pApp->m_matrixView * pApp->m_matrixProj);
-	pApp->GetImmediateContext()->UpdateSubresource(pApp->m_pcbMatrix, 0, nullptr, &pApp->m_matrixData, 0, 0);
-	pApp->GetImmediateContext()->VSSetConstantBuffers(0, 1, &pApp->m_pcbMatrix);
+	//fill constant buffer
+	App::MatrixBuffer matrixData;
+	matrixData.World = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll));
+	matrixData.WorldView = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll) * pApp->GetView());
+	matrixData.WorldViewProjection = XMMatrixTranspose(XMMatrixTranslationFromVector(m_vPos) * XMMatrixRotationRollPitchYaw(m_fPitch, m_fYaw, m_fRoll) * pApp->GetView() * pApp->GetProjection());
+	pApp->GetImmediateContext()->UpdateSubresource(pApp->GetMatrixConstantBuffer(), 0, nullptr, &matrixData, 0, 0);
+	
+	//bind constant buffer
+	ID3D11Buffer* pBuffer = pApp->GetMatrixConstantBuffer();
+	pApp->GetImmediateContext()->VSSetConstantBuffers(0, 1, &pBuffer);
 }
 
 void Mesh::VRender(App* pApp, const float elapsedTime, const float totalTime)
 {
+	pApp->GetImmediateContext()->Draw(m_iNumVertices, 0);
 }
 
 void Mesh::VPostRender(App* pApp, const float elapsedTime, const float totalTime)

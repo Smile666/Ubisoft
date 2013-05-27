@@ -35,9 +35,6 @@
     <ClCompile Include="Source\Application\BlurApp.cpp">
       <Filter>Application</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Scene\Light.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Time\Timer.cpp">
       <Filter>Time</Filter>
     </ClCompile>
@@ -46,6 +43,9 @@
     </ClCompile>
     <ClCompile Include="Source\gui\Font.cpp">
       <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DirectX11\dx.cpp">
+      <Filter>DirectX11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -62,9 +62,6 @@
     <ClInclude Include="Source\Application\BlurApp.h">
       <Filter>Application</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Scene\Light.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Time\Timer.h">
       <Filter>Time</Filter>
     </ClInclude>
@@ -77,11 +74,11 @@
     <ClInclude Include="Source\Application\Interfaces.h">
       <Filter>Application</Filter>
     </ClInclude>
+    <ClInclude Include="Source\DirectX11\dx.h">
+      <Filter>DirectX11</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\Blur.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\FinalPass.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -98,6 +95,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\FontPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Gauss_Separable.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

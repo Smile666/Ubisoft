@@ -1,6 +1,12 @@
-#pragma once 
+//========================================================================
+// App.h
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
 
-///////////////////////////////////////////////
+#pragma once 
 
 #include "../Time/Timer.h"
 
@@ -8,38 +14,71 @@ class App
 {
 public:
 	App();
-	~App();
+	virtual ~App();
 
-	//void Update(rea
-	bool InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, bool bWindowed);
-	bool InitDirectX11(int iWidth, int iHeight);
-	virtual bool VInitSimulation();
+	/***** Initializing methods *****/
+	bool			InitWindow		(LPCWSTR windowName, HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, bool bWindowed);
+	bool			InitDirectX11	(int iWidth, int iHeight);
+	virtual bool	VInitSimulation	();
+
+	//win32 message processing callback
 	static LRESULT CALLBACK WndProc(HWND hWnd, int msg, WPARAM wParam, LPARAM lParam);
-	virtual void VUpdate(float elapsedTime, float totalTime);
-	virtual void VRender(float elapsedTime, float totalTime);
-	int Run();
+	
+	/***** Simulation *****/
+	virtual void VUpdate(const float elapsedTime, const float totalTime);
+	virtual void VRender(const float elapsedTime, const float totalTime);
 
+	int Run(); //game loop
 
-	/////////////////////////////////////
-	//Constant Buffers
-	/////////////////////////////////////
+	/***** Accessors *****/
+	ID3D11Device*			GetDevice()					const	{ return m_d3d11Device; }
+	ID3D11DeviceContext*	GetImmediateContext()		const	{ return m_d3d11DeviceContext; }
+	ID3D11RenderTargetView* GetBackBufferRenderTarget() const	{ return m_pbbRenderTargetView; }
+
+	ID3D11Buffer*	GetMatrixConstantBuffer()		const { return m_pcbMatrix; }
+	ID3D11Buffer*	GetMatrixTexConstantBuffer()	const { return m_pcbMatrixTex; }
+
+	XMMATRIX GetView()		const { return m_matrixView; }
+	XMMATRIX GetProjection()const { return m_matrixProj; }
+	XMMATRIX GetOrtho()		const { return m_matrixOrtho; }
+
+	void InitAndSetStandardViewport();
 
 	/******** Structres for constant buffers ********/
-	struct MatrixBuffer
+
+	struct MatrixBuffer 
 	{
 		XMMATRIX World;
 		XMMATRIX WorldView;
 		XMMATRIX WorldViewProjection; 
 	};
-	MatrixBuffer m_matrixData;
-
 	struct MatrixTexBuffer
 	{
 		XMMATRIX WorldViewProjection;
 	};
 
-	ID3D11Buffer*	m_pcbMatrix;
-	ID3D11Buffer*	m_pcbMatrixTex;
+protected:
+
+	//===============================
+	//		DirectX11 Members
+	//===============================
+	ID3D11Device*			m_d3d11Device;
+	ID3D11DeviceContext*	m_d3d11DeviceContext;
+	IDXGISwapChain*			m_SwapChain;
+
+	//back buffer render target view
+	ID3D11RenderTargetView*	m_pbbRenderTargetView;
+
+	//viewport
+	D3D11_VIEWPORT m_viewport;
+
+	/////////////////////////////////////
+	//Constant Buffers
+	/////////////////////////////////////
+	MatrixBuffer m_matrixData;
+
+	ID3D11Buffer*	m_pcbMatrix;	//3 matrices buffer
+	ID3D11Buffer*	m_pcbMatrixTex; //one matrix buffer
 
 	/////////////////////////////////////
 	//Camera
@@ -57,30 +96,20 @@ public:
 	XMMATRIX	m_matrixProj; 
 	XMMATRIX	m_matrixOrtho;
 
-	//////////////////////////////
-	//Accessors
-	//////////////////////////////
-	ID3D11Device*			GetDevice() const					{ return m_d3d11Device; }
-	ID3D11DeviceContext*	GetImmediateContext() const			{ return m_d3d11DeviceContext; }
-	ID3D11RenderTargetView* GetBackBufferRenderTarget() const	{ return m_pbbRenderTargetView; }
-
 private:
+
+	/***** Application Data *****/
 	HWND		m_hwnd;
 	LPCTSTR		m_windowClassName;
+	LPCWSTR		m_windowName;
 	HINSTANCE	m_hInstance;
 	bool		m_bWindowed;
 
+	//game timing
 	Timer*	m_pTimer;
 
 protected:
 
+	/***** Message Handlers *****/
 	virtual void VKeyPressed(const Key key) {};
-	//===============================
-	//		DirectX11 Members
-	//===============================
-	ID3D11Device*			m_d3d11Device;
-	ID3D11DeviceContext*	m_d3d11DeviceContext;
-	IDXGISwapChain*			m_SwapChain;
-
-	ID3D11RenderTargetView*	m_pbbRenderTargetView;
 };

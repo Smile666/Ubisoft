@@ -1,3 +1,11 @@
+//========================================================================
+// Font.cpp
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #include "BlurTestStd.h"
 #include "Font.h"
 
@@ -51,9 +59,11 @@ bool Font::LoadFontTexture(ID3D11Device* pDevice, const wchar_t * filename)
 	HRESULT hr;
 	hr = D3DX11CreateShaderResourceViewFromFile(pDevice, filename, NULL, NULL, &m_pFontTextureSRV, NULL);
 	VALID(hr);
+
+	return true;
 }
 
-void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVertices, const char * const text, const float posx, const float posy)
+bool Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVertices, const char * const text, const float posx, const float posy)
 {
 	FontVertex* pVertices;
 
@@ -132,6 +142,7 @@ void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVe
 	bufferData.pSysMem = pVertices;
 
 	hr = pDevice->CreateBuffer(&bufferDesc, &bufferData, ppBuffer);
-	//VALID(hr);
+	VALID(hr);
 
+	return true;
 }

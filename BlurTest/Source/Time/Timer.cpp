@@ -1,30 +1,43 @@
+//========================================================================
+// Timer.cpp
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #include "BlurTestStd.h"
 #include "Timer.h"
 
-Timer::Timer() : m_i64GameTime(0), m_i64PrevTime(0), m_i64CurrTime(0), m_dDeltaTime(0)
+Timer::Timer() : m_i64GameTime(0)
 {
-	//get amount of cycles per second
-	QueryPerformanceCounter((LARGE_INTEGER*)&m_uCountsPerSec); 
+	//get cpu frequency
+	__int64 freq;
+	QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
 
-	//calculate amount of seconds per cycle
-	m_dSecondsPerCount = 1.0 / (double)m_uCountsPerSec;
+	//calculate number of ticks in one ms
+	m_fTicksInMs = (float)( (float)freq / 1000.0);
+
+	QueryPerformanceCounter((LARGE_INTEGER*)&m_i64StartTime);
 }
 
 void Timer::Tick()
 {
-	//Assign current time to previous
-	m_i64PrevTime = m_i64CurrTime;
+	__int64 i64CurrTime;
+	float fDeltaTime;
 
-	//Update current time
-	QueryPerformanceCounter((LARGE_INTEGER*)&m_i64CurrTime);
+	//get current time
+	QueryPerformanceCounter((LARGE_INTEGER*)&i64CurrTime);
 
-	//Calculate time difference
-	__int64 diff = m_i64CurrTime - m_i64PrevTime;
-	m_dDeltaTime = diff * m_dSecondsPerCount;
+	//calculate delta
+	fDeltaTime = (float)(i64CurrTime - m_i64StartTime);
 
-	//Increment game time
-	m_i64GameTime += diff;
+	//convert to milliseconds
+	m_fFrameTime = fDeltaTime / m_fTicksInMs;
 
-	//if overflow still happened...
-	if (m_dDeltaTime < 0) m_dDeltaTime = 0;
+	//update time of previous frame
+	m_i64StartTime = i64CurrTime;
+
+	//sum up total time
+	m_i64GameTime += fDeltaTime;
 }

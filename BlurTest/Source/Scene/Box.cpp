@@ -1,3 +1,11 @@
+//========================================================================
+// Box.cpp
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #include "BlurTestStd.h"
 #include "Box.h"
 
@@ -91,8 +99,7 @@ bool Box::VInitialize(ID3D11Device* pDevice)
 
 	//create positions buffer
 	hr = pDevice->CreateBuffer(&bufferDesc, &bufferData, &m_ppBuffers[0]);
-
-	//???!!!delete [] pos;
+	VALID(hr);
 
 	//*****************************************
 	//
@@ -155,8 +162,7 @@ bool Box::VInitialize(ID3D11Device* pDevice)
 
 	bufferData.pSysMem = texCoords;
 	hr = pDevice->CreateBuffer(&bufferDesc, &bufferData, &m_ppBuffers[1]);
-
-	//???!!!delete [] texCoords;
+	VALID(hr);
 
 	//*****************************************
 	//
@@ -194,8 +200,7 @@ bool Box::VInitialize(ID3D11Device* pDevice)
 	bufferData.pSysMem = normals;
 	
 	hr = pDevice->CreateBuffer(&bufferDesc, &bufferData, &m_ppBuffers[2]);
-
-	//???!!!delete [] normals;
+	VALID(hr);
 
 	return true;
 }
@@ -208,14 +213,3 @@ void Box::VPreRender(App* pApp, const float elapsedTime, const float totalTime)
 	pApp->GetImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Box::VRender(App* pApp, const float elapsedTime, const float totalTime)
-{
-	Mesh::VRender(pApp, elapsedTime, totalTime);
-
-	pApp->GetImmediateContext()->Draw(36, 0);
-}
-
-void Box::VPostRender(App* pApp, const float elapsedTime, const float totalTime)
-{
-	Mesh::VPostRender(pApp, elapsedTime, totalTime);
-}

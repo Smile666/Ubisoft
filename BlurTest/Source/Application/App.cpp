@@ -1,3 +1,11 @@
+//========================================================================
+// App.cpp
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #include "BlurTestStd.h"
 #include "App.h"
 
@@ -16,14 +24,17 @@ App::~App()
 	delete m_pTimer;
 }
 
-bool App::InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, bool bWindowed)
+bool App::InitWindow(LPCWSTR windowName, HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, bool bWindowed)
 {
-
+	//assign class members
 	m_hInstance = hInstance;
 	m_bWindowed = bWindowed;
-	m_windowClassName = L"TestClass";
+	m_windowClassName = L"AppClass";
+	m_windowName = windowName;
 
+	///////////////////////////////
 	//fill the WNDCLASS structure
+	// contains window params
 	WNDCLASSEX wc;
 	
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -44,6 +55,7 @@ bool App::InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, 
 	{
 		MessageBox(NULL, L"Error registering window class",	
 			L"Error", MB_OK | MB_ICONERROR);
+		return false;
 	}
 
 	HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
@@ -52,7 +64,7 @@ bool App::InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, 
 	m_hwnd = CreateWindowEx(
 		NULL,
 		m_windowClassName,
-		L"TestGame",
+		m_windowName,
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		iWidth, iHeight,
@@ -67,6 +79,7 @@ bool App::InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, 
 	{
 		MessageBox(NULL, L"Error creating window",
 			L"Error", MB_OK | MB_ICONERROR);
+		return false;
 	}
 
 	//show and update window
@@ -79,7 +92,7 @@ bool App::InitWindow(HINSTANCE hInstance, int showWnd, int iWidth, int iHeight, 
 bool App::InitDirectX11(int iWidth, int iHeight)
 {
 	//===============================================
-	//Describe backk buffer structure
+	//Describe back buffer structure
 	DXGI_MODE_DESC backBufferDesc;
 	ZeroMemory(&backBufferDesc, sizeof(DXGI_MODE_DESC));
 
@@ -111,22 +124,20 @@ bool App::InitDirectX11(int iWidth, int iHeight)
 	D3D_FEATURE_LEVEL pLevel = D3D_FEATURE_LEVEL_11_0; //set feature desired feature level
 	HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_DEBUG, &pLevel, 1,
 		D3D11_SDK_VERSION, &swapChainDesc, &m_SwapChain, &m_d3d11Device, NULL, &m_d3d11DeviceContext);
+	VALID(hr);
 
 	//Get BackBuffer texture
 	ID3D11Texture2D* BackBuffer;
 	hr = m_SwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), (void**)&BackBuffer );
+	VALID(hr);
 
 	//Create Render Target
 	hr = m_d3d11Device->CreateRenderTargetView( BackBuffer, NULL, &m_pbbRenderTargetView );
+	VALID(hr);
 	BackBuffer->Release();
 
 	//Set Render Target
 	m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_pbbRenderTargetView, NULL );
-
-	//Initialize and set viewport
-	//g_pViewport = new Viewport();
-	//g_pViewport->Init(0, 0, 1280, 720);
-	//g_pViewport->Set();
 
 	return true;
 }
@@ -142,7 +153,8 @@ bool App::VInitSimulation()
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	bufferDesc.ByteWidth = sizeof(MatrixBuffer)*3;
 
-	m_d3d11Device->CreateBuffer(&bufferDesc, 0, &m_pcbMatrix);
+	HRESULT hr = m_d3d11Device->CreateBuffer(&bufferDesc, 0, &m_pcbMatrix);
+	VALID(hr);
 
 	/////////////////////////////////////////
 	//Create camera matrices
@@ -154,6 +166,16 @@ bool App::VInitSimulation()
 	return true;
 }
 
+void App::InitAndSetStandardViewport()
+{
+	ZeroMemory(&m_viewport, sizeof(D3D11_VIEWPORT));
+
+	m_viewport.TopLeftX = 0;
+	m_viewport.TopLeftY = 0;
+	m_viewport.Width = SCREEN_WIDTH;
+	m_viewport.Height = SCREEN_HEIGHT;
+	m_d3d11DeviceContext->RSSetViewports(1, &m_viewport);
+}
 
 LRESULT CALLBACK App::WndProc(HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
 {
@@ -174,17 +196,12 @@ LRESULT CALLBACK App::WndProc(HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void App::VUpdate(float elapsedTime, float totalTime)
+void App::VUpdate(const float elapsedTime, const float totalTime)
 {
 }
 
-void App::VRender(float elapsedTime, float totalTime)
+void App::VRender(const float elapsedTime, const float totalTime)
 {
-	float bgColor[4] = {1.0f, .0f, .0f, 1.0f };
-	m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, bgColor);
-
-	//flip back buffer
-	//m_SwapChain->Present(0, 0);
 }
 
 int App::Run()
@@ -215,8 +232,6 @@ int App::Run()
 
 			VUpdate(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
 			VRender(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
-			//VUpdate(1.0f, 1.0f);
-			//VRender(1.0f, 1.0f);
 		}
 	}
 

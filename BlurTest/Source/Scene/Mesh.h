@@ -1,8 +1,17 @@
+//========================================================================
+// Mesh.h
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #pragma once
 
 #include "../Application/App.h"
 #include "../Application/Interfaces.h"
 
+//calculates normal, tanent and binormal for vertex
 void CreateNormalTangentBinormal(XMFLOAT3 * positions, XMFLOAT2 * texCoords,
 		XMFLOAT3 & normal, XMFLOAT3 & tangent, XMFLOAT3 & binormal);
 
@@ -12,9 +21,13 @@ public:
 	Mesh();
 	~Mesh();
 
+	//Initialization
 	virtual bool VInitialize(ID3D11Device* pd3d11Device);
+
+	//update
 	virtual void VUpdate(App* pApp, const float elapsedTime, const float totalTime);
 	
+	/***** IDrawable interface *****/
 	virtual void VPreRender	(App* pApp, const float elapsedTime, const float totalTime);
 	virtual void VRender	(App* pApp, const float elapsedTime, const float totalTime);
 	virtual void VPostRender(App* pApp, const float elapsedTime, const float totalTime);

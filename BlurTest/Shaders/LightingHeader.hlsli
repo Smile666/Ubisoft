@@ -48,7 +48,11 @@ class cLambertWrapAroundLighting	:	cLighting
 	}
 };
 
-class cPhongLighting	:	cLighting
+//-------------------------------------------
+//Next models inherit Lambert as they just
+//add specular term to the equation
+//-------------------------------------------
+class cPhongLighting	:	cLambertLighting
 {
 	float m_fSpecPower;
 
@@ -59,7 +63,7 @@ class cPhongLighting	:	cLighting
 	}
 };
 
-class cBlinnLighting	:	cLighting
+class cBlinnLighting	:	cLambertLighting
 {
 	float m_fSpecPower;
 
@@ -70,26 +74,7 @@ class cBlinnLighting	:	cLighting
 	}
 };
 
-class cToonLighting	:	cLighting
-{
-	float4 IlluminateDiffuse(float3 vNormal, float3 vLightDir)
-	{
-		float4 diffuse;
-		float c = 0.2f + max(dot(vNormal, vLightDir), 0.0f);
-
-		if (c < 0.4f)
-			diffuse = float4(0.3f, 0.3f, 0.3f, 1.0f);
-		else
-			if (c < 0.7f)
-				diffuse = float4(1.0f, 1.0f, 1.0f, 1.0f);
-			else
-				diffuse = float4(1.3f, 1.3f, 1.3f, 1.0f);
-
-		return diffuse * float4(m_vLightColor, 1.0f);
-	}
-};
-
-class cIsotropicWard	:	cLighting
+class cIsotropicWard	:	cLambertLighting
 {
 	float m_fRoughness;
 

@@ -1,3 +1,11 @@
+//========================================================================
+// BlurApp.h
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #pragma once
 
 #include "App.h"
@@ -5,8 +13,33 @@
 #include "../gui/Font.h"
 #include "../gui/Text.h"
 
-class _declspec(align(16)) BlurApp : public App
+class BlurApp : public App
 {
+public:
+	BlurApp();
+	virtual ~BlurApp();
+
+
+	/******* Initialization *******/
+	virtual bool VInitSimulation();
+private:
+	bool InitializeShadersAndInputLayouts();
+
+	bool InitializeTextures();
+	bool InitializeVertexBuffers();
+	bool InitializeConstantBuffers();
+	bool InitializeDepthBuffer();
+
+	bool InitializeSamplerStates();
+	bool InitializeBlendStates();
+
+	bool InitializeText();
+	bool InitializeGameObjects();
+
+public:
+	void VUpdate(const float elapsedTime, const float totalTime);
+	void VRender(const float elapsedTime, const float totalTime);
+
 protected:
 	typedef std::vector<Mesh*> Meshes;
 	Meshes	m_meshes;
@@ -31,9 +64,7 @@ protected:
 
 	ID3D11VertexShader*		m_pLightingVertexShader;
 	ID3D11PixelShader*		m_pLightingPixelShader;
-
-
-	ID3D11ComputeShader*	m_pBlurComputeShader;
+	ID3D11ClassLinkage*		m_pLightingClassLinkage;
 
 	ID3D11VertexShader*		m_pFinalPassVertexShader;
 	ID3D11PixelShader*		m_pFinalPassPixelShader;
@@ -50,18 +81,21 @@ protected:
 	/////////////////////////////////////
 	//Texture resources and views
 	/////////////////////////////////////
-	ID3D11Texture2D*	m_pMaskTexture;
-	ID3D11RenderTargetView*	m_pMaskRTV;
-	ID3D11ShaderResourceView* m_pMaskSRV;
+	ID3D11Texture2D*			m_pMaskTexture;
+	ID3D11RenderTargetView*		m_pMaskRTV;
+	ID3D11UnorderedAccessView*	m_pMaskUAV;
+	ID3D11ShaderResourceView*	m_pMaskSRV;
 
-	ID3D11Texture2D*	m_pSceneTexture;
-	ID3D11RenderTargetView*	m_pSceneRTV;
+	ID3D11Texture2D*			m_pSceneTexture;
+	ID3D11RenderTargetView*		m_pSceneRTV;
 	ID3D11ShaderResourceView*	m_pSceneSRV;
 	ID3D11UnorderedAccessView*	m_pSceneUAV;
 
-	ID3D11Texture2D*	m_pBlurredTexture;
+	ID3D11Texture2D*			m_pBlurredTexture;
 	ID3D11ShaderResourceView*	m_pBlurredSRV;
 	ID3D11UnorderedAccessView*	m_pBlurredUAV;
+
+	ID3D11ShaderResourceView*	m_pBackgroundSRV;
 
 	///////////////////////////////////////////
 	//Sampler States
@@ -105,15 +139,17 @@ protected:
 		/*** Blinn ***/
 		XMVECTOR	blinnLightColorAndSpecPower; //store spec power as last vector component
 
-		/*** Toon ***/
-		//XMVECTOR	toonLightColor;
-
 		/*** Isotropic Ward ***/
 		XMVECTOR	isotropicWardLightColorAndRoughness; //store roughness factor as last vector component
 	};
-	//LightingData	m_lightingData;
 
-	ID3D11ShaderResourceView*	m_pBackgroundSRV;
+	ID3D11Buffer*	m_pcbLight;
+	struct LightBuffer
+	{
+		XMVECTOR	lightPos;
+		XMVECTOR	cameraPos;
+	};
+	
 
 	//////////////////////////////////////
 	//Text rendering
@@ -136,7 +172,6 @@ protected:
 	//////////////////////////////////////
 	//Texture rendering resources
 	//////////////////////////////////////
-	//XMMATRIX	m_orthoProjection;
 
 	struct RectVertex
 	{
@@ -152,14 +187,6 @@ protected:
 	ID3D11Buffer*	m_pRectVertexBuffer;
 	ID3D11Buffer*	m_pScreenRectVertexBuffer;
 
-	void InitializeTextures();
-	void InitializeDepthBuffer();
-	void InitializeSamplerStates();
-	void InitializeBlendStates();
-	void InitializeText();
-
-	D3D11_VIEWPORT m_viewport;
-
 public:
 
 	//////////////////////////////
@@ -171,26 +198,19 @@ protected:
 
 	virtual void VKeyPressed(const Key key);
 
-	enum Shape
-	{
-		box_shape,
-		sphere_shape,
-		cylinder_shape,
-	};
-	Shape m_currentShape;
-
+	/***** Current Lighting Mode *****/
 	enum LightingMode
 	{
 		LM_Lambert,
 		LM_LambertWrapAround,
 		LM_Phong,
 		LM_Blinn,
-		//LM_Toon,
 		LM_IsotropicWard,
 		LM_NumLightingModes,
 	};
-	LightingMode m_mode;
+	LightingMode m_lightingMode;
 
+	/***** Current Mask Mode *****/
 	enum MaskMode
 	{
 		MM_Everything,
@@ -199,13 +219,7 @@ protected:
 	};
 	MaskMode m_maskMode;
 
+	//map current lighting mode to correct shader class instance
 	typedef std::map<LightingMode, ID3D11ClassInstance*>	LightingModeMap;
 	LightingModeMap	m_lightingClassInstances;
-
-public:
-	BlurApp();
-	~BlurApp();
-	virtual bool VInitSimulation();
-	void VUpdate(float elapsedTime, float totalTime);
-	void VRender(float elapsedTime, float totalTime);
 };

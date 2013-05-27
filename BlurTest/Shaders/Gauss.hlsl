@@ -25,22 +25,29 @@ void CS(uint3 GroupId : SV_GroupID, uint3 DispatchThreadId : SV_DispatchThreadID
 {
 	float value = MaskTex.Load(DispatchThreadId).x;
 	float4 texel = InputTex.Load(DispatchThreadId);
+
+	//texel doesn't need any blur
+	if (value == 0)
+	{
+		OutputTex[DispatchThreadId.xy] = texel;
+		return;
+	}
+
 	//get coordinates of top left corner
 	int3 textureCoords = DispatchThreadId - int3(3, 3, 0);
 
 	//initialize final color
 	float4 finalColor = (float4)0.0f;
 
-	//loop through filter kernel getting final color
+	//loop through filter kernel getting composing color
 	for (int  i = 0; i < 7; i++)
 		for (int  j = 0; j < 7; j++)
 			finalColor += InputTex.Load(textureCoords + int3(i, j, 0) ) * kernel[i][j];
 
+	//linear interpolation between actual texel color and blurred one
 	finalColor = finalColor * value + (1-value) * texel;
 	finalColor.w = 1.0f;
+
 	//assign new color value to the output image
-	if (value > 0)
 	OutputTex[DispatchThreadId.xy] = finalColor;
-	else
-	OutputTex[DispatchThreadId.xy] = texel;
 }

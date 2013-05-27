@@ -10,7 +10,7 @@ SamplerState linearSampler	:	register( s0 );
 struct ps_input
 {
 	float4 pos	:	SV_POSITION;
-	float2 texCoord	:	TEXCOORD;
+	float2 texCoord	:	TEXCOORDS;
 };
 
 ///////////////////////////////////////
@@ -23,7 +23,7 @@ float4 FontPS(ps_input input) : SV_TARGET
 	//get color from font texture
 	finalColor = fontTexture.Sample(linearSampler, input.texCoord);
 
-	//if color is black => pixel is transparent
+	//if color is not white => pixel is transparent
 	if (finalColor.r == 0)
 	{
 		finalColor.a = 0.0f;

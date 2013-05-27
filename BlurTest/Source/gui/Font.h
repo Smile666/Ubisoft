@@ -1,13 +1,25 @@
 #pragma once
 
+//========================================================================
+// Font.h
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
+#pragma once
+
 class Font
 {
 	friend class Text;
+
 public:
 	Font() {}
 	~Font();
 
 private:
+	//single character data
 	struct CharData
 	{
 		float	m_u1;
@@ -29,6 +41,7 @@ public:
 	ID3D11ShaderResourceView*	GetShaderResource() const { return m_pFontTextureSRV; }
 
 private:
+	//font vertex type
 	struct FontVertex
 	{
 		XMFLOAT3 pos;
@@ -46,5 +59,5 @@ private:
 	};
 
 	/******** Graphics API Text Creation ********/
-	void BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVertices, const char * const text, const float posx, const float posy);
+	bool BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVertices, const char * const text, const float posx, const float posy);
 };

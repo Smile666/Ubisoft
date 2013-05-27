@@ -1,3 +1,11 @@
+//========================================================================
+// winmain.cpp
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #include "BlurTestStd.h"
 #include "Application\BlurApp.h"
 
@@ -12,10 +20,21 @@ int WINAPI wWinMain(	HINSTANCE	hInstance,
 {
 	g_pApp = new BlurApp();
 
-	g_pApp->InitWindow(hInstance, nShowCmd, SCREEN_WIDTH,
-						SCREEN_HEIGHT, true);
-	g_pApp->InitDirectX11(SCREEN_WIDTH, SCREEN_HEIGHT);
-	g_pApp->VInitSimulation();
+	if (!g_pApp->InitWindow(L"Blur Test", hInstance, nShowCmd, SCREEN_WIDTH,
+						SCREEN_HEIGHT, true))
+	{
+		assert(0 && "Error initializing window occured!");
+	}
+
+	if (!g_pApp->InitDirectX11(SCREEN_WIDTH, SCREEN_HEIGHT))
+	{
+		assert(0 && "Error initializing DirectX occured!");
+	}
+
+	if (!g_pApp->VInitSimulation())
+	{
+		assert(0 && "Error intializing initial simulation state occured!");
+	}
 
 	int exitcode = g_pApp->Run();
 

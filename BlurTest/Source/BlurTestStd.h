@@ -1,3 +1,11 @@
+//========================================================================
+// BlurTestStd.h
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
+
 #pragma once 
 
 // *******************************
@@ -51,6 +59,7 @@
 // *******************************
 #define DebugBrake() __asm { int 3 }
 
+//output notes copied directly from msdn
 #ifdef _DEBUG
 	#define CheckHR(x) \
 		switch (x) \
@@ -103,7 +112,8 @@
 
 #define VALID(hr) \
 	if (hr == S_OK) \
-		return true; \
+	{ \
+	} \
 	else \
 	{ \
 		CheckHR(hr); \

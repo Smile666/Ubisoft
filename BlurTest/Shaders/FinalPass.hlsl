@@ -27,6 +27,7 @@ struct ps_input
 	float2 texCoord	:	TEXCOORDS;
 };
 
+//vertex shader
 ps_input VS( vs_input input )
 {
 	ps_input output;
@@ -43,6 +44,7 @@ float4 PS( ps_input input ) : SV_TARGET
 	return color;
 }
 
+//background pixel shader
 float4 PSBackground( ps_input input ) : SV_TARGET
 {
 	float4 color = sceneTexture.Sample(tiledSampler, input.texCoord);

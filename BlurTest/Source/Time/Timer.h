@@ -1,38 +1,37 @@
+//========================================================================
+// Timer.h
+//
+// This code is part of Ubisoft Programmer Test 
+//
+// Coded by Muralev Evgeny
+//========================================================================
 #pragma once
 
 class Timer
 {
 private:
-		//Amount of CPU cycles per second 
-		unsigned int	m_uCountsPerSec;
 
-		//Fraction of second per cycle
-		double m_dSecondsPerCount;
+	//Time of the last frame (in ticks)
+	__int64 m_i64StartTime;
 
-		//Previous Game Time
-		__int64	m_i64PrevTime;
+	//Number of CPU ticks in millisecond
+	float m_fTicksInMs;
 
-		//Current Game Time
-		__int64  m_i64CurrTime;
+	//Time taken for frame(in ms)
+	float m_fFrameTime;
 
-		//Time passed since game started
-		__int64	m_i64GameTime;
-
-		//Elapsed time
-		double m_dDeltaTime;
+	//Time passed since game started
+	__int64	m_i64GameTime;
 
 public:
-
 		
-		Timer();	//constructor
-		~Timer() {} //destructor
+	Timer();	//constructor
+	~Timer() {} //destructor
 
-		//Tick
-		void Tick();
+	//Tick
+	void Tick();
 
-		/***
-			//Getters
-						***/
-		double GetGameTime() const { return m_i64GameTime * m_dSecondsPerCount * 1000.0; }
-		double GetDeltaTime() const { return m_dDeltaTime * 1000.0; }
+	//Getters
+	float GetGameTime() const { return m_i64GameTime / m_fTicksInMs / 1000.0; }
+	float GetDeltaTime() const { return m_fFrameTime / 1000.0; }
 };

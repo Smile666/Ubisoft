@@ -20,6 +20,8 @@ BlurApp::BlurApp()
 	m_fAspectRatio = (float)SCREEN_WIDTH  / (float)SCREEN_HEIGHT;
 	m_fNearZ = 1.0f;
 	m_fFarZ = 100.0f; 
+
+	m_pFont = new Font();
 }
 
 BlurApp::~BlurApp()
@@ -239,6 +241,32 @@ void BlurApp::InitializeDepthBuffer()
 
 }
 
+void BlurApp::InitializeBlendStates()
+{
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(D3D11_BLEND_DESC));
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.IndependentBlendEnable = false;
+
+	D3D11_RENDER_TARGET_BLEND_DESC rtBlendDesc;
+	ZeroMemory(&rtBlendDesc, sizeof(D3D11_RENDER_TARGET_BLEND_DESC));
+	rtBlendDesc.BlendEnable = true;
+	rtBlendDesc.SrcBlend  = D3D11_BLEND_SRC_ALPHA;
+	rtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	rtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	rtBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	rtBlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	rtBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	rtBlendDesc.RenderTargetWriteMask = 0x0f;
+
+	blendDesc.RenderTarget[0] = rtBlendDesc;
+
+	m_d3d11Device->CreateBlendState(&blendDesc, &m_pAdditiveBlendOn);
+
+	rtBlendDesc.BlendEnable = false;
+	m_d3d11Device->CreateBlendState(&blendDesc, &m_pBlendOff);
+}
+
 void BlurApp::InitializeSamplerStates()
 {
 	D3D11_SAMPLER_DESC sDesc;
@@ -258,6 +286,13 @@ void BlurApp::InitializeSamplerStates()
 		assert(0 && "Error");
 	}
 
+	sDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	hr = m_d3d11Device->CreateSamplerState(&sDesc, &m_pLinearSampler);
+	if (hr != S_OK)
+	{
+		assert(0 && "Error");
+	}
+
 	sDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -268,6 +303,54 @@ void BlurApp::InitializeSamplerStates()
 	{
 		assert(0 && "Error");
 	}
+}
+
+void BlurApp::InitializeText()
+{
+	//
+	//Initialize fonts
+	//
+	m_pFont->LoadAsciiData("Resources\\fonts\\simplefont.txt");
+	m_pFont->LoadFontTexture(m_d3d11Device, L"Resources\\fonts\\simplefont.dds");
+
+	//
+	//Initialize texts
+	//
+
+	//lighting model text
+	Text* m_pLightingModeText = new Text();
+	m_pLightingModeText->Initialize(m_d3d11Device, "Lighting Model (press A and D to change): ", -SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f, m_pFont);
+	m_texts.push_back(m_pLightingModeText);
+
+	//lambert
+	m_pLambertText = new Text();
+	m_pLambertText->Initialize(m_d3d11Device, "Lambert", -SCREEN_WIDTH / 2.0f + 200.0f, SCREEN_HEIGHT / 2.0f, m_pFont);
+	m_texts.push_back(m_pLambertText);
+
+	//lambert wrap around
+	m_pLambertWrapAroundText = new Text();
+	m_pLambertWrapAroundText->Initialize(m_d3d11Device, "Lambert Wrap Around", -SCREEN_WIDTH / 2.0f + 200.0f, SCREEN_HEIGHT / 2.0f, m_pFont);
+	m_texts.push_back(m_pLambertWrapAroundText);
+
+	//phong
+	m_pPhongText = new Text();
+	m_pPhongText->Initialize(m_d3d11Device, "Phong", -SCREEN_WIDTH / 2.0f + 200.0f, SCREEN_HEIGHT / 2.0f, m_pFont);
+	m_texts.push_back(m_pPhongText);
+
+	//blinn
+	m_pBlinnText = new Text();
+	m_pBlinnText->Initialize(m_d3d11Device, "Blinn", -SCREEN_WIDTH / 2.0f + 200.0f, SCREEN_HEIGHT / 2.0f, m_pFont);
+	m_texts.push_back(m_pBlinnText);
+
+	//isotropic ward
+	m_pIsotropicWardText = new Text();
+	m_pIsotropicWardText->Initialize(m_d3d11Device, "IsotropicWard", -SCREEN_WIDTH / 2.0f + 200.0f, SCREEN_HEIGHT / 2.0f, m_pFont);
+	m_texts.push_back(m_pIsotropicWardText);
+
+	//mask type text
+	Text* m_pMaskModeText = new Text();
+	m_pMaskModeText->Initialize(m_d3d11Device, "Press Q to change mask mode: ", -SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f - 16.0f, m_pFont);
+	m_texts.push_back(m_pMaskModeText);
 }
 
 bool BlurApp::VInitSimulation()
@@ -283,6 +366,12 @@ bool BlurApp::VInitSimulation()
 	//Initialize sampler states
 	InitializeSamplerStates();
 
+	//Initialize blend states
+	InitializeBlendStates();
+
+	//Initialize font and application text
+	InitializeText();
+
 	HRESULT hr;
 
 	///////////////////////////////////
@@ -297,8 +386,6 @@ bool BlurApp::VInitSimulation()
 		if (pErrors != 0)
 			OutputDebugStringA((char*)pErrors->GetBufferPointer());
 	}
-
-	
 
 	hr = D3DX11CompileFromFile(L"Shaders\\Lighting.hlsl", 0, 0, "PS", "ps_5_0", 0, 0, 0, &pCompiledLightingPixelShader, &pErrors, 0);
 	if (hr != S_OK)
@@ -329,9 +416,9 @@ bool BlurApp::VInitSimulation()
 	hr = pClassLinkage->GetClassInstance("g_blinn", 0, &pBlinn);
 	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Blinn, (ID3D11ClassInstance*&&)pBlinn));
 
-	ID3D11ClassInstance* pToon = NULL;
-	hr = pClassLinkage->GetClassInstance("g_toon", 0, &pToon);
-	m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Toon, (ID3D11ClassInstance*&&)pToon));
+	//ID3D11ClassInstance* pToon = NULL;
+	//hr = pClassLinkage->GetClassInstance("g_toon", 0, &pToon);
+	//m_lightingClassInstances.insert(std::make_pair<LightingMode, ID3D11ClassInstance*>(LM_Toon, (ID3D11ClassInstance*&&)pToon));
 
 	ID3D11ClassInstance* pIsotropicWard = NULL;
 	hr = pClassLinkage->GetClassInstance("g_isotropicWard", 0, &pIsotropicWard);
@@ -443,6 +530,30 @@ bool BlurApp::VInitSimulation()
 
 	hr = m_d3d11Device->CreatePixelShader(pCompiledMaskModifiedPixelShader->GetBufferPointer(), pCompiledMaskModifiedPixelShader->GetBufferSize(), nullptr, &m_pMaskModifiedPixelShader); 
 
+	/////////////////////////////////////
+	//Create font shader
+	ID3D10Blob*	pCompiledFontVertexShader;
+	ID3D10Blob* pCompiledFontPixelShader;
+
+	hr = D3DX11CompileFromFile(L"Shaders\\FontVS.hlsl", 0, 0, "FontVS", "vs_5_0", 0, 0, 0, &pCompiledFontVertexShader, &pErrors, 0);
+	if (hr != S_OK)
+	{
+		if (pErrors != 0)
+			OutputDebugStringA((char*)pErrors->GetBufferPointer());
+	}
+
+	hr = m_d3d11Device->CreateVertexShader(pCompiledFontVertexShader->GetBufferPointer(), pCompiledFontVertexShader->GetBufferSize(), nullptr, &m_pFontVertexShader); 
+
+	hr = D3DX11CompileFromFile(L"Shaders\\FontPS.hlsl", 0, 0, "FontPS", "ps_5_0", 0, 0, 0, &pCompiledFontPixelShader, &pErrors, 0);
+	if (hr != S_OK)
+	{
+		if (pErrors != 0)
+			OutputDebugStringA((char*)pErrors->GetBufferPointer());
+	}
+
+	hr = m_d3d11Device->CreatePixelShader(pCompiledFontPixelShader->GetBufferPointer(), pCompiledFontPixelShader->GetBufferSize(), nullptr, &m_pFontPixelShader); 
+
+
 	//release blobs
 	pCompiledBackgroundPixelShader->Release();
 	pCompiledMaskPixelShader->Release();
@@ -454,6 +565,8 @@ bool BlurApp::VInitSimulation()
 	pCompiledLightingPixelShader->Release();
 	pCompiledTextureVertexShader->Release();
 	pCompiledTexturePixelShader->Release();
+	pCompiledFontVertexShader->Release();
+	pCompiledFontPixelShader->Release();
 
 	///////////////////////////////////////////
 	//Set viewport
@@ -500,7 +613,7 @@ bool BlurApp::VInitSimulation()
 	lightingData.lambertWALightColorAndFactor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.3f);
 	lightingData.phongLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 120.0f);
 	lightingData.blinnLightColorAndSpecPower = XMVectorSet(1.0f, 1.0f, 1.0f, 22.0f);
-	lightingData.toonLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+	//lightingData.toonLightColor = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	lightingData.isotropicWardLightColorAndRoughness = XMVectorSet(1.0f, 1.0f, 1.0f, 30.0f);
 	m_d3d11DeviceContext->UpdateSubresource(m_pcbLighting, 0, nullptr, &lightingData, 0, 0);
 
@@ -569,15 +682,44 @@ bool BlurApp::VInitSimulation()
 	return true;
 }
 
-void BlurApp::VUpdate(real elapsedTime, real totalTime)
+void BlurApp::VUpdate(float elapsedTime, float totalTime)
 {
-	for (Meshes::iterator it = m_meshes.begin(); it != m_meshes.end(); it++)
+	//update meshes
+	for (auto it = m_meshes.begin(); it != m_meshes.end(); it++)
 	{
 		(*it)->VUpdate(this, elapsedTime, totalTime);
 	}
+
+#pragma region
+	//manage texts
+	if (m_mode ==LM_Lambert)
+		m_pLambertText->SetEnable(true);
+	else
+		m_pLambertText->SetEnable(false);
+
+	if (m_mode ==LM_LambertWrapAround)
+		m_pLambertWrapAroundText->SetEnable(true);
+	else
+		m_pLambertWrapAroundText->SetEnable(false);
+
+	if (m_mode ==LM_Phong)
+		m_pPhongText->SetEnable(true);
+	else
+		m_pPhongText->SetEnable(false);
+
+	if (m_mode ==LM_Blinn)
+		m_pBlinnText->SetEnable(true);
+	else
+		m_pBlinnText->SetEnable(false);
+
+	if (m_mode ==LM_IsotropicWard)
+		m_pIsotropicWardText->SetEnable(true);
+	else
+		m_pIsotropicWardText->SetEnable(false);
+#pragma endregion
 }
 
-void BlurApp::VRender(real elapsedTime, real totalTime)
+void BlurApp::VRender(float elapsedTime, float totalTime)
 {
 	//App::VRender(elapsedTime, totalTime);
 
@@ -595,6 +737,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pBackgroundSRV);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pTiledSampler);
 	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthDisable, 1);
+	m_d3d11DeviceContext->OMSetBlendState(m_pBlendOff, NULL, 0xffffffff);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, nullptr);
 	m_d3d11DeviceContext->RSSetViewports(1, &m_viewport);
 	m_d3d11DeviceContext->Draw(6, 0);
@@ -614,12 +757,13 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->PSSetConstantBuffers(0, 1, &m_pcbLighting);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pAnisotropicSampler);
 	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthEnable, 1);
+	m_d3d11DeviceContext->OMSetBlendState(m_pBlendOff, NULL, 0xffffffff);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pSceneRTV, m_pDepthStencilView);
 
 	for (Meshes::iterator it = m_meshes.begin(); it != m_meshes.end(); it++)
 	{
 		(*it)->VPreRender(this, elapsedTime, totalTime);
-		(*it)->VRender(m_d3d11DeviceContext, elapsedTime, totalTime);
+		(*it)->VRender(this, elapsedTime, totalTime);
 		(*it)->VPostRender(this, elapsedTime, totalTime);
 	}
 
@@ -639,6 +783,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pDepthStencilSRV);
 	m_d3d11DeviceContext->PSSetConstantBuffers(0, 1, &m_pcbScreen);
 	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthDisable, 1);
+	m_d3d11DeviceContext->OMSetBlendState(m_pBlendOff, NULL, 0xffffffff);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pMaskRTV, nullptr);
 	
 	m_d3d11DeviceContext->Draw(6, 0);
@@ -676,8 +821,6 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	/////////////////////////////////////////////
 	//Render texture to the screen
-	//UINT stride = sizeof(RectVertex);
-	//UINT offset = 0;
 	m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_pRectVertexBuffer, &stride, &offset);
 	m_d3d11DeviceContext->IASetInputLayout(m_pTextureLayout);
 	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -686,6 +829,7 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 	m_d3d11DeviceContext->PSSetShader(m_pFinalPassPixelShader, 0, 0);
 	//m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pSceneSRV);
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &m_pBlurredSRV);
+	m_d3d11DeviceContext->OMSetBlendState(m_pBlendOff, NULL, 0xffffffff);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pbbRenderTargetView, nullptr);
 	m_d3d11DeviceContext->OMSetDepthStencilState(m_pDepthDisable, 1);
 	m_d3d11DeviceContext->RSSetViewports(1, &m_viewport);
@@ -693,6 +837,34 @@ void BlurApp::VRender(real elapsedTime, real totalTime)
 
 	//unbind resources
 	m_d3d11DeviceContext->PSSetShaderResources(0, 1, &pNullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, NULL);
+
+	/////////////////////////////////////////////
+	//Render text
+	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_d3d11DeviceContext->VSSetShader(m_pFontVertexShader, 0, 0);
+	m_d3d11DeviceContext->PSSetShader(m_pFontPixelShader, 0, 0);
+	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_pLinearSampler);
+	m_d3d11DeviceContext->OMSetBlendState(m_pAdditiveBlendOn, NULL, 0xffffffff);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_pbbRenderTargetView, nullptr);
+
+	for (Texts::iterator it = m_texts.begin(); it != m_texts.end(); it++)
+	{
+		Text* pText = (*it);
+
+		//if disabled then skip
+		if (!pText->IsEnable()) continue;
+
+		//otherwise render
+		pText->VPreRender(this, elapsedTime, totalTime);
+		pText->VRender(this, elapsedTime, totalTime);
+		pText->VPostRender(this, elapsedTime, totalTime);
+	}
+
+	//m_pLightingModeText->VPreRender(this, elapsedTime, totalTime);
+	//m_pLightingModeText->VRender(this, elapsedTime, totalTime);
+	//m_pLightingModeText->VPostRender(this, elapsedTime, totalTime);
+
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &pNullRTV, NULL);
 
 	//flip back buffer

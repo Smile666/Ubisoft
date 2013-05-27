@@ -2,12 +2,14 @@
 
 #include "App.h"
 #include "../Scene/Mesh.h"
+#include "../gui/Font.h"
+#include "../gui/Text.h"
 
 class _declspec(align(16)) BlurApp : public App
 {
 protected:
 	typedef std::vector<Mesh*> Meshes;
-	Meshes m_meshes;
+	Meshes	m_meshes;
 
 	/////////////////////////////////////
 	//Input layouts
@@ -16,9 +18,14 @@ protected:
 	ID3D11InputLayout*	m_pTextureLayout;
 
 	/////////////////////////////////////
+	//Blend States
+	/////////////////////////////////////
+	ID3D11BlendState*	m_pBlendOff;
+	ID3D11BlendState*	m_pAdditiveBlendOn;
+
+	/////////////////////////////////////
 	//Shaders
 	/////////////////////////////////////
-	//ID3D11ComputeShader*	m_pMaskGenerationComputeShader;
 	ID3D11PixelShader*		m_pMaskPixelShader;
 	ID3D11PixelShader*		m_pMaskModifiedPixelShader;
 
@@ -36,6 +43,9 @@ protected:
 	ID3D11ComputeShader*	m_pGaussHorizontalComputeShader;
 	ID3D11ComputeShader*	m_pGaussVerticalComputeShader;
 	ID3D11ComputeShader*	m_pGaussComputeShader;
+
+	ID3D11VertexShader*		m_pFontVertexShader;
+	ID3D11PixelShader*		m_pFontPixelShader;
 
 	/////////////////////////////////////
 	//Texture resources and views
@@ -57,6 +67,7 @@ protected:
 	//Sampler States
 	///////////////////////////////////////////
 	ID3D11SamplerState*	m_pAnisotropicSampler;
+	ID3D11SamplerState*	m_pLinearSampler;
 	ID3D11SamplerState*	m_pTiledSampler;
 
 	///////////////////////////////////////
@@ -95,7 +106,7 @@ protected:
 		XMVECTOR	blinnLightColorAndSpecPower; //store spec power as last vector component
 
 		/*** Toon ***/
-		XMVECTOR	toonLightColor;
+		//XMVECTOR	toonLightColor;
 
 		/*** Isotropic Ward ***/
 		XMVECTOR	isotropicWardLightColorAndRoughness; //store roughness factor as last vector component
@@ -105,14 +116,27 @@ protected:
 	ID3D11ShaderResourceView*	m_pBackgroundSRV;
 
 	//////////////////////////////////////
+	//Text rendering
+	//////////////////////////////////////
+	Font*	m_pFont;
+
+	typedef std::vector<Text*> Texts;
+	Texts	m_texts;
+
+	/*** For quick access only ***/
+	//NOTE: DO NOT clean them in destructor
+	//(they will be automatically deleted when cleaning text map)
+	/////////////////////////////////////////////////////////////
+	Text*	m_pLambertText;
+	Text*	m_pLambertWrapAroundText;
+	Text*	m_pPhongText;
+	Text*	m_pBlinnText;
+	Text*	m_pIsotropicWardText;
+
+	//////////////////////////////////////
 	//Texture rendering resources
 	//////////////////////////////////////
-	XMMATRIX	m_orthoProjection;
-	ID3D11Buffer*	m_pcbMatrixTex;
-	struct MatrixTexBuffer
-	{
-		XMMATRIX WorldViewProjection;
-	};
+	//XMMATRIX	m_orthoProjection;
 
 	struct RectVertex
 	{
@@ -131,6 +155,8 @@ protected:
 	void InitializeTextures();
 	void InitializeDepthBuffer();
 	void InitializeSamplerStates();
+	void InitializeBlendStates();
+	void InitializeText();
 
 	D3D11_VIEWPORT m_viewport;
 
@@ -159,7 +185,7 @@ protected:
 		LM_LambertWrapAround,
 		LM_Phong,
 		LM_Blinn,
-		LM_Toon,
+		//LM_Toon,
 		LM_IsotropicWard,
 		LM_NumLightingModes,
 	};
@@ -180,6 +206,6 @@ public:
 	BlurApp();
 	~BlurApp();
 	virtual bool VInitSimulation();
-	void VUpdate(real elapsedTime, real totalTime);
-	void VRender(real elapsedTime, real totalTime);
+	void VUpdate(float elapsedTime, float totalTime);
+	void VRender(float elapsedTime, float totalTime);
 };

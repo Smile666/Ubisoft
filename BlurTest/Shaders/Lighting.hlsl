@@ -81,7 +81,7 @@ cbuffer LightingBuffer	:	register( c0 )
 	cLambertWrapAroundLighting	g_lambertWrapAround;
 	cPhongLighting				g_phong;
 	cBlinnLighting				g_blinn;
-	cToonLighting				g_toon;
+	//cToonLighting				g_toon;
 	cIsotropicWard				g_isotropicWard;
 };
 
@@ -96,7 +96,8 @@ float4 PS( ps_input input ) : SV_TARGET
 
 	float4 diffuse = diffuseTexture.Sample(anisotropicSampler, texCoord);
 	float4 ambient = diffuse * 0.1f;
-	float4 specular = float4(0.5f, 0.5f, 0.5f, 1.0f);
+	//float4 specular = float4(0.5f, 0.5f, 0.5f, 1.0f);
+	float4 specular = specularMap.Sample(anisotropicSampler, texCoord);
 
 	//calculate normal
 	float3 normalWS = normalize(input.normalWS);

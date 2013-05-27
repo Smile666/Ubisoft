@@ -1,22 +1,23 @@
 #pragma once
 
 #include "../Application/App.h"
+#include "../Application/Interfaces.h"
 
 void CreateNormalTangentBinormal(XMFLOAT3 * positions, XMFLOAT2 * texCoords,
 		XMFLOAT3 & normal, XMFLOAT3 & tangent, XMFLOAT3 & binormal);
 
-class Mesh
+class Mesh : public IDrawable
 {
 public:
 	Mesh();
 	~Mesh();
 
 	virtual bool VInitialize(ID3D11Device* pd3d11Device);
-	virtual void VUpdate(App* pApp, const real elapsedTime, const real totalTime);
+	virtual void VUpdate(App* pApp, const float elapsedTime, const float totalTime);
 	
-	virtual void VPreRender(App* pApp, const real elapsedTime, const real totalTime);
-	virtual void VRender(ID3D11DeviceContext* pd3d11DevCon, const real elapsedTime, const real totalTime);
-	virtual void VPostRender(App* pApp, const real elapsedTime, const real totalTime);
+	virtual void VPreRender	(App* pApp, const float elapsedTime, const float totalTime);
+	virtual void VRender	(App* pApp, const float elapsedTime, const float totalTime);
+	virtual void VPostRender(App* pApp, const float elapsedTime, const float totalTime);
 
 protected:
 	////////////////////////////////////////////////////

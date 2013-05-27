@@ -200,7 +200,7 @@ bool Box::VInitialize(ID3D11Device* pDevice)
 	return true;
 }
 
-void Box::VPreRender(App* pApp, const real elapsedTime, const real totalTime)
+void Box::VPreRender(App* pApp, const float elapsedTime, const float totalTime)
 {
 	Mesh::VPreRender(pApp, elapsedTime, totalTime);
 
@@ -208,14 +208,14 @@ void Box::VPreRender(App* pApp, const real elapsedTime, const real totalTime)
 	pApp->GetImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Box::VRender(ID3D11DeviceContext* pd3d11DevCon, const real elapsedTime, const real totalTime)
+void Box::VRender(App* pApp, const float elapsedTime, const float totalTime)
 {
-	Mesh::VRender(pd3d11DevCon, elapsedTime, totalTime);
+	Mesh::VRender(pApp, elapsedTime, totalTime);
 
-	pd3d11DevCon->Draw(36, 0);
+	pApp->GetImmediateContext()->Draw(36, 0);
 }
 
-void Box::VPostRender(App* pApp, const real elapsedTime, const real totalTime)
+void Box::VPostRender(App* pApp, const float elapsedTime, const float totalTime)
 {
 	Mesh::VPostRender(pApp, elapsedTime, totalTime);
 }

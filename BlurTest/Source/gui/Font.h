@@ -4,7 +4,7 @@ class Font
 {
 	friend class Text;
 public:
-	Font();
+	Font() {}
 	~Font();
 
 private:
@@ -21,6 +21,11 @@ private:
 	ID3D11ShaderResourceView*	m_pFontTextureSRV;
 
 public:
+	/******** Methods for loading data ********/
+	bool LoadAsciiData(const char * const filename);
+	bool LoadFontTexture(ID3D11Device* pDevice, const wchar_t * filename);
+
+	/******** Accessors ********/
 	ID3D11ShaderResourceView*	GetShaderResource() const { return m_pFontTextureSRV; }
 
 private:
@@ -39,10 +44,6 @@ private:
 		{
 		}
 	};
-
-	/******** Methods for loading data ********/
-	bool LoadAsciiData(const char * const filename);
-	bool LoadFontTexture(ID3D11Device* pDevice, const wchar_t * filename);
 
 	/******** Graphics API Text Creation ********/
 	void BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVertices, const char * const text, const float posx, const float posy);

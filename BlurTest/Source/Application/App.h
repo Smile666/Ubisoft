@@ -1,5 +1,7 @@
 #pragma once 
 
+///////////////////////////////////////////////
+
 #include "../Time/Timer.h"
 
 class App
@@ -13,8 +15,8 @@ public:
 	bool InitDirectX11(int iWidth, int iHeight);
 	virtual bool VInitSimulation();
 	static LRESULT CALLBACK WndProc(HWND hWnd, int msg, WPARAM wParam, LPARAM lParam);
-	virtual void VUpdate(real elapsedTime, real totalTime);
-	virtual void VRender(real elapsedTime, real totalTime);
+	virtual void VUpdate(float elapsedTime, float totalTime);
+	virtual void VRender(float elapsedTime, float totalTime);
 	int Run();
 
 
@@ -31,7 +33,13 @@ public:
 	};
 	MatrixBuffer m_matrixData;
 
+	struct MatrixTexBuffer
+	{
+		XMMATRIX WorldViewProjection;
+	};
+
 	ID3D11Buffer*	m_pcbMatrix;
+	ID3D11Buffer*	m_pcbMatrixTex;
 
 	/////////////////////////////////////
 	//Camera

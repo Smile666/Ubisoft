@@ -1,8 +1,10 @@
-﻿Build started 5/27/2013 1:33:45 AM.
+﻿Build started 5/27/2013 7:19:08 PM.
      1>Project "D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\BlurTest.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"BlurTestStd.h" /Fp"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\ReleaseBlurTest.pch" /Fo"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\\" /Fd"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Source\gui\Font.cpp
-         Font.cpp
+         D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"BlurTestStd.h" /Fp"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\ReleaseBlurTest.pch" /Fo"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\\" /Fd"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Source\Application\App.cpp
+         App.cpp
+     1>Source\Application\App.cpp(216): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>Source\Application\App.cpp(217): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
        Link:
          D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Bin\BlurTest.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"D:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86" d3d11.lib d3dx11.lib d3d10.lib d3dcompiler.lib dxguid.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Bin\BlurTest.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Bin\BlurTest.lib" /MACHINE:X86 /SAFESEH D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\App.obj
          D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\BlurApp.obj
@@ -12,7 +14,6 @@
          D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\Box.obj
          D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\Light.obj
          D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\Mesh.obj
-         D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\Plane.obj
          D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\Timer.obj
          D:\Users\Dgek\Desktop\Dgek\Ubisoft\BlurTest\Obj\Release\winmain.obj
          Generating code
@@ -22,4 +23,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.08
+Time Elapsed 00:00:03.05

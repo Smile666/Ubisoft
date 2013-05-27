@@ -33,7 +33,6 @@ public:
 		/***
 			//Getters
 						***/
-		double GetGameTime() const { return m_i64GameTime * m_dSecondsPerCount; }
-		double GetDeltaTime() const { return m_dDeltaTime; }
-		double GetCurrentTime() const { return m_i64CurrTime * m_dSecondsPerCount; }
+		double GetGameTime() const { return m_i64GameTime * m_dSecondsPerCount * 1000.0; }
+		double GetDeltaTime() const { return m_dDeltaTime * 1000.0; }
 };

@@ -18,11 +18,9 @@ int WINAPI wWinMain(	HINSTANCE	hInstance,
 	g_pApp->VInitSimulation();
 
 	int exitcode = g_pApp->Run();
-	//g_pApp->VUpdate(0, 0);
-	//g_pApp->VRender(0, 0);
 
+	//clean memory
 	delete g_pApp;
 
 	return exitcode;
-	//return 0;
 }

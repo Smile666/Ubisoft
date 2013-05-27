@@ -12,13 +12,13 @@ cbuffer MatrixBuffer
 struct vs_input
 {
 	float3 pos	:	POSITION;
-	float2 texCoord	:	TEXCOORD;
+	float2 texCoord	:	TEXCOORDS;
 };
 
 struct ps_input
 {
 	float4 pos	:	SV_POSITION;
-	float2 texCoord	:	TEXCOORD;
+	float2 texCoord	:	TEXCOORDS;
 };
 
 ///////////////////////////////////////

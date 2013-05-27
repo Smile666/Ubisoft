@@ -36,6 +36,8 @@ bool Font::LoadAsciiData(const char * const filename)
 		fIn >> m_pSymbolsData[i].m_u1;
 		fIn >> m_pSymbolsData[i].m_u2;
 		fIn >> m_pSymbolsData[i].width;
+
+		fIn.get(temp);
 	}
 
 	//now close opened file
@@ -58,7 +60,8 @@ void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVe
 	float curPosX = posx;
 
 	//get the number of literals
-	numVertices = static_cast<int>(strlen(text));
+	int iNumLiterals = static_cast<int>(strlen(text));
+	numVertices = iNumLiterals * 6;
 
 	pVertices = new FontVertex[numVertices];
 
@@ -66,7 +69,7 @@ void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVe
 	// Build vertex data!
 	int literal;
 	int curVertex = 0;
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < iNumLiterals; i++)
 	{
 		literal = static_cast<int>(text[i]) - 32;
 
@@ -75,12 +78,12 @@ void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVe
 			curPosX += 3.0f;
 		else
 		{
-			/*** first triangle ***/
+			///// first triangle /////
 
 			//top left
 			pVertices[curVertex++] = FontVertex(curPosX, posy, 0.0f,
 												m_pSymbolsData[literal].m_u1, 0.0f);
-
+			
 			//bottom right
 			pVertices[curVertex++] = FontVertex(curPosX + m_pSymbolsData[literal].width, posy - 16.0f, 0.0f,
 												m_pSymbolsData[literal].m_u2, 1.0f);
@@ -89,7 +92,7 @@ void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVe
 			pVertices[curVertex++] = FontVertex(curPosX, posy - 16.0f, 0.0f,
 												m_pSymbolsData[literal].m_u1, 1.0f);
 
-			/*** second triangle ***/
+			///// second triangle /////
 			//top left
 			pVertices[curVertex++] = FontVertex(curPosX, posy, 0.0f,
 												m_pSymbolsData[literal].m_u1, 0.0f);
@@ -103,9 +106,9 @@ void Font::BuildText(ID3D11Device* pDevice, ID3D11Buffer** ppBuffer, int & numVe
 												m_pSymbolsData[literal].m_u2, 1.0f);
 
 			//offset
-			curPosX += m_pSymbolsData[literal].width + 1.0f;
+			curPosX += m_pSymbolsData[literal].width + 1.0f; 
 		}
-	}
+	}  
 
 	//////////////////////////////////////
 	//Create vertex buffer

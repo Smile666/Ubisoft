@@ -149,6 +149,7 @@ bool App::VInitSimulation()
 	/////////////////////////////////////////
 	m_matrixView = XMMatrixLookAtLH(m_vCameraPos, m_vCameraTarget, m_vCameraUp);
 	m_matrixProj = XMMatrixPerspectiveFovLH(m_fFovY, m_fAspectRatio, m_fNearZ, m_fFarZ);
+	m_matrixOrtho = XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, m_fNearZ, m_fFarZ);
 
 	return true;
 }
@@ -173,13 +174,13 @@ LRESULT CALLBACK App::WndProc(HWND hWnd, int msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void App::VUpdate(real elapsedTime, real totalTime)
+void App::VUpdate(float elapsedTime, float totalTime)
 {
 }
 
-void App::VRender(real elapsedTime, real totalTime)
+void App::VRender(float elapsedTime, float totalTime)
 {
-	real bgColor[4] = {1.0f, .0f, .0f, 1.0f };
+	float bgColor[4] = {1.0f, .0f, .0f, 1.0f };
 	m_d3d11DeviceContext->ClearRenderTargetView(m_pbbRenderTargetView, bgColor);
 
 	//flip back buffer
@@ -212,10 +213,10 @@ int App::Run()
 		{
 			m_pTimer->Tick();
 
-			//VUpdate(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
-			//VRender(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
-			VUpdate(1.0f, 1.0f);
-			VRender(1.0f, 1.0f);
+			VUpdate(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
+			VRender(m_pTimer->GetDeltaTime(), m_pTimer->GetGameTime());
+			//VUpdate(1.0f, 1.0f);
+			//VRender(1.0f, 1.0f);
 		}
 	}
 

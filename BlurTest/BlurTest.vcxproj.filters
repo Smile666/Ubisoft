@@ -35,9 +35,6 @@
     <ClCompile Include="Source\Application\BlurApp.cpp">
       <Filter>Application</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Scene\Plane.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Scene\Light.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -64,9 +61,6 @@
     </ClInclude>
     <ClInclude Include="Source\Application\BlurApp.h">
       <Filter>Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Plane.h">
-      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Scene\Light.h">
       <Filter>Scene</Filter>

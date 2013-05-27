@@ -126,7 +126,7 @@ bool Plane::VInitialize(ID3D11Device* pDevice)
 	return true;
 }
 
-void Plane::VPreRender(App* pApp, const real elapsedTime, const real totalTime)
+void Plane::VPreRender(App* pApp, const float elapsedTime, const float totalTime)
 {
 	Mesh::VPreRender(pApp, elapsedTime, totalTime);
 
@@ -134,14 +134,14 @@ void Plane::VPreRender(App* pApp, const real elapsedTime, const real totalTime)
 	pApp->GetImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void Plane::VRender(ID3D11DeviceContext* pd3d11DevCon, const real elapsedTime, const real totalTime)
+void Plane::VRender(App* pApp, const float elapsedTime, const float totalTime)
 {
-	Mesh::VRender(pd3d11DevCon, elapsedTime, totalTime);
+	Mesh::VRender(pApp, elapsedTime, totalTime);
 
 	pd3d11DevCon->Draw(6, 0);
 }
 
-void Plane::VPostRender(App* pApp, const real elapsedTime, const real totalTime)
+void Plane::VPostRender(App* pApp, const float elapsedTime, const float totalTime)
 {
 	Mesh::VPostRender(pApp, elapsedTime, totalTime);
 }
